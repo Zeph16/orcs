@@ -6,7 +6,10 @@ spring:
     config:
       server:
         git:
-          uri: file://${user.home}/hilcoe/senior/ORCS/config/configurations
+          uri: file:./config/configurations
+          default-label: main
+          clone-on-start: true
+
   rabbitmq:
     username: guest
     password: guest
