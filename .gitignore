@@ -1,0 +1,52 @@
+# Maven
+target/
+*.jar
+*.war
+*.ear
+
+# Gradle
+.gradle/
+build/
+*.jar
+*.war
+*.ear
+
+# IntelliJ IDEA
+.idea/
+*.iml
+out/
+
+# Eclipse
+.settings/
+.classpath
+.project
+.target/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Logs
+*.log
+
+# Environment files
+*.env
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.swp
+
+# Docker
+.dockerignore
+Dockerfile
+docker-compose.yml
+
+# VS Code
+.vscode/
+
+# Other
+*.class
