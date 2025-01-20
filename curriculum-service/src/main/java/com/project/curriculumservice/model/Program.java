@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "programs")
@@ -26,6 +27,16 @@ public class Program {
 
     @NotBlank(message = "Code is required")
     private String code;
-    @ManyToMany(mappedBy = "programs")
-    private Set<Department> departments = new HashSet<>();
+
+    @OneToMany(mappedBy = "program", cascade = CascadeType.ALL)
+    @Builder.Default
+    private Set<DepartmentProgram> departmentPrograms = new HashSet<>();
+
+    // Convenience method to get associated departments
+    @Transient
+    public Set<Department> getDepartments() {
+        return departmentPrograms.stream()
+                .map(DepartmentProgram::getDepartment)
+                .collect(Collectors.toSet());
+    }
 }

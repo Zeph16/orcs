@@ -3,13 +3,11 @@ package com.project.curriculumservice.model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "departments")
@@ -29,13 +27,12 @@ public class Department {
     private String code;
 
     private String head;
-    @ManyToMany
-    @JoinTable(
-            name = "department_program",
-            joinColumns = @JoinColumn(name = "department_id"),
-            inverseJoinColumns = @JoinColumn(name = "program_id")
-    )
-    @NotEmpty(message = "At least one program is required")
-    private Set<Program> programs = new HashSet<>();
+
+    @OneToMany(mappedBy = "department", cascade = CascadeType.MERGE, orphanRemoval = true)
+    @Builder.Default
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private Set<DepartmentProgram> departmentPrograms = new HashSet<>();
+
 }
 
