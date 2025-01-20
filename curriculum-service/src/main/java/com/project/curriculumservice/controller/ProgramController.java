@@ -1,6 +1,7 @@
 package com.project.curriculumservice.controller;
 
-import com.project.curriculumservice.dto.ProgramDTO;
+import com.project.curriculumservice.dto.ProgramRequestDTO;
+import com.project.curriculumservice.dto.ProgramResponseDTO;
 import com.project.curriculumservice.service.ProgramService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -18,29 +19,29 @@ public class ProgramController {
 
     // Create a new program
     @PostMapping
-    public ResponseEntity<ProgramDTO> createProgram(@Valid @RequestBody ProgramDTO programDTO) {
-        ProgramDTO createdProgram = programService.createProgram(programDTO);
+    public ResponseEntity<ProgramResponseDTO> createProgram(@Valid @RequestBody ProgramRequestDTO programDTO) {
+        ProgramResponseDTO createdProgram = programService.createProgram(programDTO);
         return new ResponseEntity<>(createdProgram, HttpStatus.CREATED);
     }
 
     // Get a program by ID
     @GetMapping("/{id}")
-    public ResponseEntity<ProgramDTO> getProgramById(@PathVariable Long id) {
-        ProgramDTO program = programService.getProgramById(id);
+    public ResponseEntity<ProgramResponseDTO> getProgramById(@PathVariable Long id) {
+        ProgramResponseDTO program = programService.getProgramById(id);
         return ResponseEntity.ok(program);
     }
 
     // Get all programs
     @GetMapping
-    public ResponseEntity<List<ProgramDTO>> getAllPrograms() {
-        List<ProgramDTO> programs = programService.getAllPrograms();
+    public ResponseEntity<List<ProgramResponseDTO>> getAllPrograms() {
+        List<ProgramResponseDTO> programs = programService.getAllPrograms();
         return ResponseEntity.ok(programs);
     }
 
     // Update an existing program
     @PutMapping("/{id}")
-    public ResponseEntity<ProgramDTO> updateProgram(@PathVariable Long id, @Valid @RequestBody ProgramDTO programDetails) {
-        ProgramDTO updatedProgram = programService.updateProgram(id, programDetails);
+    public ResponseEntity<ProgramResponseDTO> updateProgram(@PathVariable Long id, @Valid @RequestBody ProgramRequestDTO programDetails) {
+        ProgramResponseDTO updatedProgram = programService.updateProgram(id, programDetails);
         return ResponseEntity.ok(updatedProgram);
     }
 

@@ -1,6 +1,7 @@
 package com.project.curriculumservice.controller;
 
-import com.project.curriculumservice.dto.DepartmentDTO;
+import com.project.curriculumservice.dto.DepartmentRequestDTO;
+import com.project.curriculumservice.dto.DepartmentResponseDTO;
 import com.project.curriculumservice.model.Department;
 import com.project.curriculumservice.service.DepartmentService;
 import jakarta.validation.Valid;
@@ -15,34 +16,33 @@ import java.util.List;
 @RequestMapping("/api/departments")
 @RequiredArgsConstructor
 public class DepartmentController {
-
     private final DepartmentService departmentService;
 
     // Create a new department
     @PostMapping
-    public ResponseEntity<Department> createDepartment(@Valid @RequestBody DepartmentDTO departmentDTO) {
-        Department createdDepartment = departmentService.createDepartment(departmentDTO);
+    public ResponseEntity<DepartmentResponseDTO> createDepartment(@Valid @RequestBody DepartmentRequestDTO departmentDTO) {
+        DepartmentResponseDTO createdDepartment = departmentService.createDepartment(departmentDTO);
         return new ResponseEntity<>(createdDepartment, HttpStatus.CREATED);
     }
 
     // Get a department by ID
     @GetMapping("/{id}")
-    public ResponseEntity<Department> getDepartmentById(@PathVariable Long id) {
-        Department department = departmentService.getDepartmentById(id);
+    public ResponseEntity<DepartmentResponseDTO> getDepartmentById(@PathVariable Long id) {
+        DepartmentResponseDTO department = departmentService.getDepartmentById(id);
         return ResponseEntity.ok(department);
     }
 
     // Get all departments
     @GetMapping
-    public ResponseEntity<List<Department>> getAllDepartments() {
-        List<Department> departments = departmentService.getAllDepartments();
+    public ResponseEntity<List<DepartmentResponseDTO>> getAllDepartments() {
+        List<DepartmentResponseDTO> departments = departmentService.getAllDepartments();
         return ResponseEntity.ok(departments);
     }
 
     // Update an existing department
     @PutMapping("/{id}")
-    public ResponseEntity<Department> updateDepartment(@PathVariable Long id, @Valid @RequestBody DepartmentDTO departmentDTO) {
-        Department updatedDepartment = departmentService.updateDepartment(id, departmentDTO);
+    public ResponseEntity<DepartmentResponseDTO> updateDepartment(@PathVariable Long id, @Valid @RequestBody DepartmentRequestDTO departmentDTO) {
+        DepartmentResponseDTO updatedDepartment = departmentService.updateDepartment(id, departmentDTO);
         return ResponseEntity.ok(updatedDepartment);
     }
 
