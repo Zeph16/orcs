@@ -50,6 +50,13 @@ public class GlobalExceptionHandler {
         }
         return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
     }
+    // Handle ProgramReferencedException
+    @ExceptionHandler(ProgramReferencedException.class)
+    public ResponseEntity<Map<String, String>> handleProgramReferencedException(ProgramReferencedException ex) {
+        Map<String, String> errorResponse = new HashMap<>();
+        errorResponse.put("error", ex.getMessage());
+        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
+    }
     // Handle generic exceptions
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> handleGenericException(Exception ex) {
@@ -57,4 +64,5 @@ public class GlobalExceptionHandler {
         errorResponse.put("error", "An unexpected error occurred: " + ex.getMessage());
         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
 }
