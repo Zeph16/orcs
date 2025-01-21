@@ -20,6 +20,10 @@ public class DepartmentProgramService {
     private final ProgramRepository programRepository;
     private final DepartmentProgramRepository departmentProgramRepository;
 
+    public DepartmentProgram getDepartmentProgramById(Long departmentId, Long programId) {
+        return departmentProgramRepository.findByDepartment_DepartmentIDAndProgram_ProgramID(departmentId, programId)
+                .orElseThrow(() -> new ResourceNotFoundException("DepartmentProgram not found for Department ID: " + departmentId + " and Program ID: " + programId));
+    }
     public List<Program> getPrograms(Long departmentId) {
         return departmentProgramRepository.findByDepartment_DepartmentID(departmentId)
                 .stream()
