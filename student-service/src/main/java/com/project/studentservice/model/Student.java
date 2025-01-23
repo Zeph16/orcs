@@ -16,8 +16,14 @@ public class Student {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     private String name;
+
+    @Column(unique = true)
     private String cardId;
+
+    @Column(unique = true)
     private String email;
+
+    @Column(unique = true)
     private String phone;
     private String address;
     private String enrollmentStatus;
