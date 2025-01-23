@@ -5,8 +5,30 @@ spring:
   config:
     import: optional:configserver:http://localhost:8888
 
+  datasource:
+    url: jdbc:postgresql://localhost:5432/student_service
+    username: zeph
+    password: zeph
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: create
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
 
 eureka:
   client:
     serviceUrl:
       defaultZone: http://localhost:8761/eureka/
+
+grades:
+  A_PLUS: 4.0
+  A: 4.0
+  B_PLUS: 3.7
+  B: 3.3
+  C_PLUS: 3.0
+  C: 2.3
+  D: 1.7
+  F: 0.0
+  RC: 0.0
+  RA: 0.0
