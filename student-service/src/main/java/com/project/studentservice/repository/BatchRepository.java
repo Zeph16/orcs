@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface BatchRepository extends JpaRepository<Batch, Integer> {
+public interface BatchRepository extends JpaRepository<Batch, Long> {
     Optional<Batch> findByCode(String code);
     List<Batch> findByDepartmentId(Long departmentId);
     List<Batch> findByProgramId(Long programId);
