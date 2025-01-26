@@ -15,12 +15,12 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/students")
+@RequestMapping("/api/students")
 public class StudentController {
     private final StudentService studentService;
 
     @PostMapping("/{batchId}")
-    public ResponseEntity<StudentResponseDTO> registerStudent(@RequestBody StudentRequestDTO studentDTO, @PathVariable int batchId) {
+    public ResponseEntity<StudentResponseDTO> registerStudent(@RequestBody StudentRequestDTO studentDTO, @PathVariable Long batchId) {
         Student student = studentService.registerStudent(studentService.toEntity(studentDTO), batchId);
         return new ResponseEntity<>(studentService.toDTO(student), HttpStatus.CREATED);
     }
