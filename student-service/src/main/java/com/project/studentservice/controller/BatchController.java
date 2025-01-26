@@ -10,13 +10,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/batches")
+@RequestMapping("/api/batches")
 public class BatchController {
     private final BatchService batchService;
 
@@ -44,13 +43,13 @@ public class BatchController {
         return new ResponseEntity<>(batchService.toDTO(batch), HttpStatus.CREATED);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<BatchResponseDTO> getBatchById(@PathVariable int id) {
+    @GetMapping("/id/{id}")
+    public ResponseEntity<BatchResponseDTO> getBatchById(@PathVariable Long id) {
         Batch batch = batchService.getBatchById(id);
         return ResponseEntity.ok(batchService.toDTO(batch));
     }
 
-    @GetMapping("/{code}")
+    @GetMapping("/code/{code}")
     public ResponseEntity<BatchResponseDTO> getBatchByCode(@PathVariable String code) {
         Batch batch = batchService.getBatchByCode(code);
         return ResponseEntity.ok(batchService.toDTO(batch));
@@ -58,13 +57,13 @@ public class BatchController {
 
 
     @PutMapping("/{id}")
-    public ResponseEntity<BatchResponseDTO> updateBatch(@PathVariable int id, @RequestBody BatchRequestDTO batchDTO) {
+    public ResponseEntity<BatchResponseDTO> updateBatch(@PathVariable Long id, @RequestBody BatchRequestDTO batchDTO) {
         Batch batch = batchService.updateBatch(id, batchService.toEntity(batchDTO));
         return ResponseEntity.ok(batchService.toDTO(batch));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteBatch(@PathVariable int id) {
+    public ResponseEntity<Void> deleteBatch(@PathVariable Long id) {
         batchService.deleteBatch(id);
         return ResponseEntity.noContent().build();
     }
