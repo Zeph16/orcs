@@ -12,7 +12,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Year;
 import java.util.List;
 
 @Service
@@ -22,7 +24,6 @@ public class BatchService {
     private final CurriculumServiceClient curriculumServiceClient;
 
     public Batch createBatch(Batch batch) {
-        String code = "";
         ResponseEntity<ProgramResponseDTO> programResponse= curriculumServiceClient.getProgramById(batch.getProgramId());
         if (!programResponse.getStatusCode().is2xxSuccessful()) {
             throw new ResourceNotFoundException("Program not found");
@@ -32,16 +33,38 @@ public class BatchService {
             throw new ResourceNotFoundException("Department not found");
         }
 
-        code += programResponse.getBody().getCode();
-        code += departmentResponse.getBody().getCode();
-        code += String.valueOf(LocalDateTime.now().getYear()).substring(2);
-        code += String.format("%02d", getBatchesByYear(LocalDateTime.now().getYear()).size() + 1);
-
-        batch.setCode(code);
+        String batchCode = generateBatchCode(departmentResponse.getBody(), programResponse.getBody());
+        batch.setCode(batchCode);
         return batchRepository.save(batch);
     }
 
-    public Batch getBatchById(int id) {
+    private String generateBatchCode(DepartmentResponseDTO departmentResponseDTO, ProgramResponseDTO programResponseDTO) {
+        // Program Prefix
+        String prefix = programResponseDTO.getName().equals("Graduate")
+                ? "MS"
+                : "DRB";
+
+        // Department Suffix (if applicable)
+        if (departmentResponseDTO.getName().equals("Software Engineering")) {
+            prefix += "SE";
+        } else if (departmentResponseDTO.getName().equals("Computer Science") && programResponseDTO.getName().equals("Graduate")) {
+            prefix += "CS";
+        }
+
+        LocalDateTime currentDate = LocalDateTime.now();
+        // Year Suffix
+        String yearSuffix = String.valueOf(currentDate.getYear()).substring(2);
+
+        // Count existing batches to determine batch number
+        int batchCount = getBatchesByYear(LocalDateTime.now().getYear()).size();
+
+        // Batch number (start at 01, increment for each batch)
+        String batchNumber = String.format("%02d", batchCount + 1);
+
+        return prefix + yearSuffix + batchNumber;
+    }
+
+    public Batch getBatchById(Long id) {
         return batchRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Batch not found"));
     }
@@ -71,18 +94,28 @@ public class BatchService {
         return batchRepository.findAll();
     }
 
-    public Batch updateBatch(int id, Batch batchDetails) {
-        Batch batch = getBatchById(id);
-        batch.setProgramId(batchDetails.getProgramId());
-        batch.setDepartmentId(batchDetails.getDepartmentId());
-        batch.setCode(batchDetails.getCode());
-        batch.setExpectedGradDate(batchDetails.getExpectedGradDate());
-        batch.setSection(batchDetails.getSection());
-        batch.setCreditCost(batchDetails.getCreditCost());
-        return batchRepository.save(batch);
+    public Batch updateBatch(Long id, Batch batchDetails) {
+        Batch existingBatch = batchRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Batch not found with ID: " + id));
+        ResponseEntity<ProgramResponseDTO> programResponse= curriculumServiceClient.getProgramById(batchDetails.getProgramId());
+        if (!programResponse.getStatusCode().is2xxSuccessful()) {
+            throw new ResourceNotFoundException("Program not found");
+        }
+        ResponseEntity<DepartmentResponseDTO> departmentResponse= curriculumServiceClient.getDepartmentById(batchDetails.getDepartmentId());
+        if (!departmentResponse.getStatusCode().is2xxSuccessful()) {
+            throw new ResourceNotFoundException("Department not found");
+        }
+        existingBatch.setProgramId(batchDetails.getProgramId());
+        existingBatch.setDepartmentId(batchDetails.getDepartmentId());
+        String batchCode = generateBatchCode(departmentResponse.getBody(), programResponse.getBody());
+        existingBatch.setCode(batchCode);
+        existingBatch.setExpectedGradDate(batchDetails.getExpectedGradDate());
+        existingBatch.setSection(batchDetails.getSection());
+        existingBatch.setCreditCost(batchDetails.getCreditCost());
+        return batchRepository.save(existingBatch);
     }
 
-    public void deleteBatch(int id) {
+    public void deleteBatch(Long id) {
         Batch batch = getBatchById(id);
         batchRepository.delete(batch);
     }
@@ -95,6 +128,7 @@ public class BatchService {
                 .section(dto.getSection())
                 .creditCost(dto.getCreditCost())
                 .expectedGradDate(dto.getExpectedGradDate())
+                .creationDate(LocalDate.now())
                 .build();
     }
 
