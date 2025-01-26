@@ -12,7 +12,6 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -68,6 +67,21 @@ public class CourseService {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Course not found with ID: " + courseId));
         return mapToCourseResponseDTO(course);
+    }
+
+    public List<PrerequisiteDTO> getPrerequisitesById(Long courseId) {
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new ResourceNotFoundException("Course not found with ID: " + courseId));
+
+        // Map prerequisites to PrerequisiteDTO
+        List<PrerequisiteDTO> prerequisites = course.getPrerequisites().stream()
+                .map(prerequisite -> PrerequisiteDTO.builder()
+                        .courseId(prerequisite.getCourseID())
+                        .title(prerequisite.getTitle())
+                        .code(prerequisite.getCode())
+                        .build())
+                .collect(Collectors.toList());
+        return prerequisites;
     }
 
     public List<CourseResponseDTO> getAllCourses() {
@@ -165,7 +179,7 @@ public class CourseService {
         return false;
     }
 
-    private CourseResponseDTO mapToCourseResponseDTO(Course course) {
+    public CourseResponseDTO mapToCourseResponseDTO(Course course) {
         List<DepartmentProgramResponseDTO> dpDTOs = course.getDepartmentPrograms().stream()
                 .map(dp -> DepartmentProgramResponseDTO.builder()
                         .departmentId(dp.getDepartment().getDepartmentID())
