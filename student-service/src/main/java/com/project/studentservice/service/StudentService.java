@@ -20,7 +20,7 @@ public class StudentService {
     private final StudentRepository studentRepository;
     private final BatchService batchService;
 
-    public Student registerStudent(Student student, int batchId) {
+    public Student registerStudent(Student student, Long batchId) {
         if (studentRepository.findByEmail(student.getEmail()).isPresent()) {
             throw new DuplicateResourceException("Student with this email already exists");
         }
