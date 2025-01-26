@@ -32,5 +32,5 @@ public class StudentRequestDTO {
     @NotNull(message = "Enrollment status is required")
     private String enrollmentStatus;
 
-    private Integer batchId;
+    private Long batchId;
 }
