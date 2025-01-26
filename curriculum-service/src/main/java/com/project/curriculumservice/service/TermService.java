@@ -77,12 +77,30 @@ public class TermService {
         termRepository.delete(term);
     }
 
+    public String getCurrentTermCode() {
+        Term.Season currentSeason = getCurrentSeason();
+        Year currentYear = Year.now();
+        return generateTermCode(currentSeason, currentYear);
+    }
+
     private String generateTermCode(Term.Season season, Year year) {
         return switch (season) {
             case AUTUMN -> "AUT" + year;
             case WINTER -> "WIN" + year;
             case SPRING -> "SPR" + year;
         };
+    }
+
+    private Term.Season getCurrentSeason() {
+        int month = LocalDate.now().getMonthValue();
+
+        if (month == 10 || month == 11 || month == 12 || month == 1) {
+            return Term.Season.AUTUMN;
+        } else if (month >= 2 && month <= 5) {
+            return Term.Season.WINTER;
+        } else {
+            return Term.Season.SPRING;
+        }
     }
 
     private void validateAcademicYear(Year academicYear) {
