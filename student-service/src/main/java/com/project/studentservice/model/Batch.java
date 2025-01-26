@@ -9,9 +9,11 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 @Entity
+@Table(name = "batches", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"creationDate", "section"})
+})
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -20,14 +22,17 @@ public class Batch {
     @Id
     @GeneratedValue(strategy= GenerationType.AUTO)
     private Long id;
+    @Column(nullable = false)
     private Long departmentId;
+    @Column(nullable = false)
     private Long programId;
 
     @Column(unique = true)
     private String code;
-
-    private char section;
+    private Character section;
+    @Column(nullable = false)
     private double creditCost;
+    @Column(nullable = false)
     private LocalDate expectedGradDate;
 
     @CreatedDate
