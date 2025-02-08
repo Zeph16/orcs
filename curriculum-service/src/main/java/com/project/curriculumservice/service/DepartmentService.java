@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -77,21 +78,16 @@ public class DepartmentService {
         Department existingDepartment = departmentRepository.findById(departmentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Department not found with ID: " + departmentId));
 
+        // Update basic department information
         existingDepartment.setName(departmentDTO.getName());
         existingDepartment.setCode(departmentDTO.getCode());
         existingDepartment.setHead(departmentDTO.getHead());
 
-        // If program IDs are provided, update the relationships
-        if (departmentDTO.getProgramIds() != null && !departmentDTO.getProgramIds().isEmpty()) {
-            // Clear existing relationships
-            existingDepartment.getDepartmentPrograms().clear();
-            departmentRepository.save(existingDepartment);
-
-            // Create new relationships
-            for (Long programId : departmentDTO.getProgramIds()) {
-                departmentProgramService.createDepartmentProgram(existingDepartment, programId);
-            }
+        // Handle program associations
+        if (departmentDTO.getProgramIds() != null) {
+            departmentProgramService.updateDepartmentPrograms(existingDepartment, departmentDTO.getProgramIds());
         }
+
         Department department = departmentRepository.save(existingDepartment);
         return mapToDepartmentResponseDTO(department, departmentProgramService.getPrograms(departmentId));
     }

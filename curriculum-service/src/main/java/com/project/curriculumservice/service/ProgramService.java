@@ -46,12 +46,13 @@ public class ProgramService {
 
         // Update department relationships
         if (programDTO.getDepartmentIds() != null) {
-            existingProgram.getDepartmentPrograms().clear();
-            programRepository.save(existingProgram); // Save to clear relationships
-
-            for (Long departmentId : programDTO.getDepartmentIds()) {
-                departmentProgramService.createDepartmentProgram(departmentId, programId);
-            }
+            departmentProgramService.updateDepartmentPrograms(existingProgram, programDTO.getDepartmentIds());
+//            existingProgram.getDepartmentPrograms().clear();
+//            programRepository.save(existingProgram); // Save to clear relationships
+//
+//            for (Long departmentId : programDTO.getDepartmentIds()) {
+//                departmentProgramService.createDepartmentProgram(departmentId, programId);
+//            }
         }
 
         Program updatedProgram = programRepository.save(existingProgram);

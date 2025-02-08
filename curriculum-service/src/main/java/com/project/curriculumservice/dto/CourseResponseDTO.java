@@ -15,7 +15,10 @@ public class CourseResponseDTO {
     private String code;
     private Integer creditHrs;
     private CourseType type;
+    private String description;
     private CourseStatus status;
     private List<DepartmentProgramResponseDTO> departmentPrograms;
     private List<PrerequisiteDTO> prerequisites;
+    private List<String> courseObjectives;
+    private List<String> courseContent;
 }

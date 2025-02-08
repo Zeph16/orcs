@@ -12,6 +12,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -100,6 +101,23 @@ public class CourseService {
         existingCourse.setCreditHrs(courseDTO.getCreditHrs());
         existingCourse.setType(courseDTO.getType());
         existingCourse.setStatus(courseDTO.getStatus());
+        existingCourse.setDescription(courseDTO.getDescription());
+
+        // Update course objectives
+        if (courseDTO.getCourseObjectives() != null) {
+            updateElementCollection(
+                    existingCourse.getCourseObjectives(),
+                    courseDTO.getCourseObjectives()
+            );
+        }
+
+        // Update course content
+        if (courseDTO.getCourseContent() != null) {
+            updateElementCollection(
+                    existingCourse.getCourseContent(),
+                    courseDTO.getCourseContent()
+            );
+        }
 
         // Update department-program associations if provided
         if (courseDTO.getDepartmentProgramIds() != null && !courseDTO.getDepartmentProgramIds().isEmpty()) {
@@ -120,6 +138,12 @@ public class CourseService {
 
         Course updatedCourse = courseRepository.save(existingCourse);
         return mapToCourseResponseDTO(updatedCourse);
+    }
+    private <T> void updateElementCollection(List<T> existingCollection, List<T> newItems) {
+        existingCollection.clear();
+        if (newItems != null && !newItems.isEmpty()) {
+            existingCollection.addAll(newItems);
+        }
     }
 
     public void deleteCourse(Long courseId) {
@@ -189,7 +213,6 @@ public class CourseService {
                         .build())
                 .collect(Collectors.toList());
 
-
         List<PrerequisiteDTO> prerequisiteDTOs = course.getPrerequisites().stream()
                 .map(prereq -> PrerequisiteDTO.builder()
                         .courseId(prereq.getCourseID())
@@ -198,7 +221,6 @@ public class CourseService {
                         .build())
                 .collect(Collectors.toList());
 
-
         return CourseResponseDTO.builder()
                 .courseId(course.getCourseID())
                 .title(course.getTitle())
@@ -206,6 +228,9 @@ public class CourseService {
                 .creditHrs(course.getCreditHrs())
                 .type(course.getType())
                 .status(course.getStatus())
+                .description(course.getDescription())
+                .courseObjectives(course.getCourseObjectives())
+                .courseContent(course.getCourseContent())
                 .departmentPrograms(dpDTOs)
                 .prerequisites(prerequisiteDTOs)
                 .build();
@@ -218,6 +243,11 @@ public class CourseService {
                 .creditHrs(courseDTO.getCreditHrs())
                 .type(courseDTO.getType())
                 .status(courseDTO.getStatus())
+                .description(courseDTO.getDescription())
+                .courseObjectives(courseDTO.getCourseObjectives() != null ?
+                        new ArrayList<>(courseDTO.getCourseObjectives()) : new ArrayList<>())
+                .courseContent(courseDTO.getCourseContent() != null ?
+                        new ArrayList<>(courseDTO.getCourseContent()) : new ArrayList<>())
                 .departmentPrograms(new HashSet<>())
                 .prerequisites(new HashSet<>())
                 .build();

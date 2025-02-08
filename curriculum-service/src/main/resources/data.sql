@@ -13,19 +13,83 @@ INSERT INTO department_program (department_id, program_id) VALUES (1, 2); -- Com
 INSERT INTO department_program (department_id, program_id) VALUES (2, 1); -- Software Engineering with BSc
 INSERT INTO department_program (department_id, program_id) VALUES (2, 2); -- Software Engineering with MSc
 
--- COURSES
-insert into courses (credit_hrs, code, status, title, type)
-values
-    (3, 'CSC101', 'OPEN', 'Introduction to Computer Science', 'MAJOR'),
-    (5, 'CSC201', 'OPEN', 'Data Structures and Algorithms', 'MAJOR'),
-    (4, 'CSC202', 'OPEN', 'Object-Oriented Programming', 'MAJOR'), -- id 3
-    (4, 'CSC301', 'OPEN', 'Database Systems', 'MAJOR'),
-    (4, 'CSC302', 'CLOSED', 'Computer Networks', 'MAJOR'), -- id 5
-    (4, 'CSC401', 'OPEN', 'Operating Systems', 'MAJOR'),
-    (3, 'CSC402', 'OPEN', 'Artificial Intelligence', 'ELECTIVE'),
-    (3, 'CSC403', 'OPEN', 'Software Engineering', 'ELECTIVE'), -- id 8
-    (3, 'CSC404', 'CLOSED', 'Computer Security', 'ELECTIVE'),
-    (3, 'CSC405', 'OPEN', 'Human-Computer Interaction', 'ELECTIVE');
+-- Insert the courses (updated to include description, course_objectives, and course_content)
+INSERT INTO courses (credit_hrs, code, status, title, type, description)
+VALUES
+    (3, 'CSC101', 'OPEN', 'Introduction to Computer Science', 'MAJOR', 'A foundational course introducing fundamental concepts of computer science.'),
+    (5, 'CSC201', 'OPEN', 'Data Structures and Algorithms', 'MAJOR', 'Covers various data structures and algorithms and their applications.'),
+    (4, 'CSC202', 'OPEN', 'Object-Oriented Programming', 'MAJOR', 'Introduces the principles and paradigms of object-oriented programming.'),
+    (4, 'CSC301', 'OPEN', 'Database Systems', 'MAJOR', 'Covers the design, implementation, and management of database systems.'),
+    (4, 'CSC302', 'CLOSED', 'Computer Networks', 'MAJOR', 'Explores the concepts and protocols of computer networks.'),
+    (4, 'CSC401', 'OPEN', 'Operating Systems', 'MAJOR', 'Introduces the principles and functionalities of operating systems.'),
+    (3, 'CSC402', 'OPEN', 'Artificial Intelligence', 'ELECTIVE', 'Covers the fundamental concepts and techniques of artificial intelligence.'),
+    (3, 'CSC403', 'OPEN', 'Software Engineering', 'ELECTIVE', 'Introduces the principles and practices of software engineering.'),
+    (3, 'CSC404', 'CLOSED', 'Computer Security', 'ELECTIVE', 'Explores the security threats and vulnerabilities in computer systems.'),
+    (3, 'CSC405', 'OPEN', 'Human-Computer Interaction', 'ELECTIVE', 'Focuses on the design and evaluation of user interfaces.');
+
+-- Insert course objectives for CSC101
+INSERT INTO course_objectives (course_id, objective)
+SELECT courseID, 'Understand basic computer architecture' FROM courses WHERE code = 'CSC101';
+INSERT INTO course_objectives (course_id, objective)
+SELECT courseID, 'Learn fundamental programming concepts' FROM courses WHERE code = 'CSC101';
+INSERT INTO course_objectives (course_id, objective)
+SELECT courseID, 'Write simple programs in a high-level language' FROM courses WHERE code = 'CSC101';
+
+-- Insert course content for CSC101
+INSERT INTO course_content (course_id, content_item)
+SELECT courseID, 'Introduction to computers' FROM courses WHERE code = 'CSC101';
+INSERT INTO course_content (course_id, content_item)
+SELECT courseID, 'Basic programming concepts' FROM courses WHERE code = 'CSC101';
+INSERT INTO course_content (course_id, content_item)
+SELECT courseID, 'Control flow statements' FROM courses WHERE code = 'CSC101';
+
+-- Repeat similar INSERT statements for course_objectives and course_content for other courses.
+--  (I've omitted them for brevity, but you'll need to add them for each course.)
+--  For example, for CSC201:
+
+INSERT INTO course_objectives (course_id, objective)
+SELECT courseID, 'Understand different data structures' FROM courses WHERE code = 'CSC201';
+INSERT INTO course_objectives (course_id, objective)
+SELECT courseID, 'Analyze algorithm efficiency' FROM courses WHERE code = 'CSC201';
+
+INSERT INTO course_content (course_id, content_item)
+SELECT courseID, 'Arrays and linked lists' FROM courses WHERE code = 'CSC201';
+INSERT INTO course_content (course_id, content_item)
+SELECT courseID, 'Searching and sorting algorithms' FROM courses WHERE code = 'CSC201';
+
+
+
+-- Insert into course_department_program (You'll need to have data in your department and program tables first)
+-- Example (replace with your actual IDs):
+-- INSERT INTO course_department_program (course_id, department_id, program_id)
+-- SELECT courseID, 1, 1 FROM courses WHERE code = 'CSC101';  -- Assuming department_id 1 and program_id 1 exist
+
+-- Insert into course_prerequisites (You'll need to have data in your courses table first)
+-- Example (replace with your actual course IDs):
+-- INSERT INTO course_prerequisites (course_id, prerequisite_id)
+-- SELECT courseID, (SELECT courseID FROM courses WHERE code = 'CSC101') FROM courses WHERE code = 'CSC201'; -- CSC101 is a prerequisite for CSC201
+
+-- -- Insert the objectives for Software Engineering (CSC403 - id 8)
+-- insert into course_course_objectives (course_courseid, course_objectives) values
+--                                                          (8, 'have exposure on specialized areas of Software Engineering'),
+--                                                          (8, 'have a clear idea on the application of Software Engineering for Development, Education, Manufacturing, etc.'),
+--                                                          (8, 'be exposed to office automation and business process modeling'),
+--                                                          (8, 'use the Internet and communicate with individuals, companies, and others by sending and receiving messages. Exposure on World Wide Web, Web Design., etc.'),
+--                                                          (8, 'be fluent users of graphics, desktop publishing (books, magazines, newspapers and the like) and web browsing'),
+--                                                          (8, 'create documents such as personal and commercial letters, memo, project proposals and papers, and so on'),
+--                                                          (8, 'work on spread sheets to perform calculations and summarize information');
+--
+-- -- Insert the content for Software Engineering (CSC403 - id 8)
+-- insert into course_course_content (course_courseid, course_content) values
+--                                                          (8, 'Introduction'),
+--                                                          (8, 'Computer Hardware and Software Evolution, and Computer Architecture'),
+--                                                          (8, 'Data Representation and Computer Arithmetic'),
+--                                                          (8, 'Programming Languages and the Programming Process'),
+--                                                          (8, 'Business Process Engineering'),
+--                                                          (8, 'Data Communications and Computer Networks'),
+--                                                          (8, 'Internet, Intranet and Extranet'),
+--                                                          (8, 'Future Trends in ICT [Reading Assignment]');
+
 
 insert into course_prerequisites (course_id, prerequisite_id)
 values (7, 1),

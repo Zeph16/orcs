@@ -8,6 +8,7 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.util.Set;
+import java.util.List;
 
 @Data
 @Builder
@@ -27,7 +28,14 @@ public class CourseRequestDTO {
     @NotNull(message = "Course status is required")
     private CourseStatus status;
 
+    private String description;
+
     @NotNull(message = "Department program IDs are required")
     private Set<DepartmentProgramIdDTO> departmentProgramIds;
+
     private Set<Long> prerequisiteIds;
+
+    private List<String> courseObjectives;
+
+    private List<String> courseContent;
 }

@@ -2,6 +2,7 @@ package com.project.studentservice.repository;
 
 
 import com.project.studentservice.model.Batch;
+import feign.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -18,4 +19,8 @@ public interface BatchRepository extends JpaRepository<Batch, Long> {
 
     @Query("SELECT b FROM Batch b WHERE YEAR(b.creationDate) = :year")
     List<Batch> findByCreationDateYear(int year);
+    @Query("SELECT COUNT(b) FROM Batch b WHERE YEAR(b.creationDate) = :year")
+    long countByCreationYear(@Param("year") int year);
+    @Query("SELECT b FROM Batch b WHERE LOWER(b.code) LIKE LOWER(CONCAT('%', :query, '%'))")
+    List<Batch> searchBatches(@Param("query") String query);
 }
