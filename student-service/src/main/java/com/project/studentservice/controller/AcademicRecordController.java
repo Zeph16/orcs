@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/academic-records")
+@RequestMapping("/api/academic-records")
 @RequiredArgsConstructor
 public class AcademicRecordController {
     private final AcademicRecordService academicRecordService;
@@ -41,6 +41,11 @@ public class AcademicRecordController {
     public ResponseEntity<List<AcademicRecordResponseDTO>> getAcademicRecordsByStudent(@PathVariable int studentId) {
         List<AcademicRecord> records = academicRecordService.getAcademicRecordsByStudent(studentId);
         return ResponseEntity.ok(records.stream().map(academicRecordService::toDTO).collect(Collectors.toList()));
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<AcademicRecordResponseDTO>> searchAcademicRecordsByStudentNameOrCardID(@RequestParam String nameOrCardIdQuery) {
+        return ResponseEntity.ok(academicRecordService.searchAcademicRecordsByStudentNameOrCardID(nameOrCardIdQuery));
     }
 
     @GetMapping("/course/{courseId}")

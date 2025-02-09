@@ -23,6 +23,11 @@ public class AcademicRecord {
     private int courseId;
     private int termId;
 
+    private Float midExam;
+    private Float finalExam;
+    private Float assignment;
+    private Float lab;
+
     @Enumerated(EnumType.STRING)
     private Grade grade;
 }

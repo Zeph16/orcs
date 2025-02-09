@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -55,6 +56,10 @@ public class AcademicRecordService {
         academicRecord.setStudent(academicRecordDetails.getStudent());
         academicRecord.setCourseId(academicRecordDetails.getCourseId());
         academicRecord.setTermId(academicRecordDetails.getTermId());
+        academicRecord.setMidExam(academicRecordDetails.getMidExam());
+        academicRecord.setFinalExam(academicRecordDetails.getFinalExam());
+        academicRecord.setAssignment(academicRecordDetails.getAssignment());
+        academicRecord.setLab(academicRecordDetails.getLab());
         academicRecord.setGrade(academicRecordDetails.getGrade());
         return academicRecordRepository.save(academicRecord);
     }
@@ -65,16 +70,23 @@ public class AcademicRecordService {
     }
 
     public AcademicRecord toEntity(AcademicRecordRequestDTO dto) {
+        // Look up studentId by studentCardId
+        Student student = studentService.getStudentByCardId(dto.getStudentCardId());
+
         return AcademicRecord.builder()
-                .student(studentService.getStudentById(dto.getStudentId()))
+                .student(student)
                 .courseId(dto.getCourseId())
                 .termId(dto.getTermId())
+                .midExam(dto.getMidExam())
+                .finalExam(dto.getFinalExam())
+                .assignment(dto.getAssignment())
+                .lab(dto.getLab())
                 .grade(dto.getGrade())
                 .build();
     }
 
     public AcademicRecordResponseDTO toDTO(AcademicRecord record) {
-        ResponseEntity<CourseResponseDTO> courseResponse =  curriculumServiceClient.getCourseById((Long.valueOf(record.getCourseId())));
+        ResponseEntity<CourseResponseDTO> courseResponse = curriculumServiceClient.getCourseById((Long.valueOf(record.getCourseId())));
         if (courseResponse.getStatusCode() != HttpStatus.OK || courseResponse.getBody() == null) {
             throw new ResourceNotFoundException("Course not found");
         }
@@ -87,7 +99,25 @@ public class AcademicRecordService {
                 .courseCode(course.getCode())
                 .courseName(course.getTitle())
                 .termId(record.getTermId())
+                .midExam(record.getMidExam())
+                .finalExam(record.getFinalExam())
+                .assignment(record.getAssignment())
+                .lab(record.getLab())
                 .grade(record.getGrade())
                 .build();
+    }
+
+    public List<AcademicRecordResponseDTO> searchAcademicRecordsByStudentNameOrCardID(String nameOrCardIdQuery) {
+        String sanitizedQuery = sanitizeSearchTerm(nameOrCardIdQuery);
+        return academicRecordRepository.searchAcademicRecords(sanitizedQuery).stream()
+                .map(this::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    private String sanitizeSearchTerm(String term) {
+        if (term == null) {
+            return null;
+        }
+        return term.replaceAll("[^a-zA-Z0-9\\s\\-\\.\\,]", "").trim();
     }
 }

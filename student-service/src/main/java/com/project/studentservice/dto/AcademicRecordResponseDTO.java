@@ -13,11 +13,15 @@ import java.io.Serializable;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class AcademicRecordResponseDTO implements Serializable {
-    private Integer id;
+public class AcademicRecordResponseDTO {
+    private int id;
     private String studentCardId;
     private String courseCode;
     private String courseName;
-    private Integer termId;
+    private int termId;
+    private Float midExam; // New field
+    private Float finalExam; // New field
+    private Float assignment; // New field
+    private Float lab; // New field for lab marks
     private Grade grade;
 }
