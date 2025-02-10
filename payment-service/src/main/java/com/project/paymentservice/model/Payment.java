@@ -35,7 +35,7 @@ public class Payment {
     @Column()
     private String checkoutUrl;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String txRef;
 
     @Column(nullable = false)

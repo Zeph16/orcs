@@ -1,5 +1,6 @@
 package com.project.paymentservice.dto;
 
+import com.project.paymentservice.model.PaymentStatus;
 import com.project.paymentservice.model.PaymentType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,4 +15,5 @@ public class PaymentPartialResponseDTO {
     private Long id;
     private String checkout_url;
     private PaymentType type;
+    private PaymentStatus status;
 }

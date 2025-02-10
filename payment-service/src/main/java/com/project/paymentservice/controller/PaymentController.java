@@ -7,6 +7,7 @@ import com.project.paymentservice.service.PaymentService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -20,9 +21,11 @@ public class PaymentController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<PaymentPartialResponseDTO> createPayment(@RequestBody PaymentRequestDTO paymentRequestDTO) {
-        Payment payment = paymentService.processPayment(paymentRequestDTO);
-        return ResponseEntity.ok(new PaymentPartialResponseDTO(payment.getId(), payment.getCheckoutUrl(), payment.getType()));
+    public ResponseEntity<List<PaymentPartialResponseDTO>> createPayment(@RequestBody PaymentRequestDTO paymentRequestDTO) {
+        List<Payment> payments = paymentService.processPayment(paymentRequestDTO);
+        List<PaymentPartialResponseDTO> responseDTOs = new ArrayList<>();
+        payments.forEach(p -> responseDTOs.add(new PaymentPartialResponseDTO(p.getId(), p.getCheckoutUrl(), p.getType(), p.getStatus())));
+        return ResponseEntity.ok(responseDTOs);
     }
 
     @GetMapping("/verify/{id}")

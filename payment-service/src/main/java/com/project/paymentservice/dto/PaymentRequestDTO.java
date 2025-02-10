@@ -5,12 +5,13 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class PaymentRequestDTO {
     private Long studentId;
-    private BigDecimal amount;
+    private List<BigDecimal> amounts;
     private String description;
 }
