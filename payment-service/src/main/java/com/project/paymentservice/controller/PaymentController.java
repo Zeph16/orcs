@@ -1,0 +1,52 @@
+package com.project.paymentservice.controller;
+import com.project.paymentservice.dto.PaymentRequestDTO;
+import com.project.paymentservice.dto.PaymentPartialResponseDTO;
+import com.project.paymentservice.dto.RollbackRequestDTO;
+import com.project.paymentservice.model.Payment;
+import com.project.paymentservice.service.PaymentService;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/payments")
+public class PaymentController {
+
+    private final PaymentService paymentService;
+
+    public PaymentController(PaymentService paymentService) {
+        this.paymentService = paymentService;
+    }
+
+    @PostMapping("/create")
+    public ResponseEntity<PaymentPartialResponseDTO> createPayment(@RequestBody PaymentRequestDTO paymentRequestDTO) {
+        Payment payment = paymentService.processPayment(paymentRequestDTO);
+        return ResponseEntity.ok(new PaymentPartialResponseDTO(payment.getId(), payment.getCheckoutUrl(), payment.getType()));
+    }
+
+    @GetMapping("/verify/{id}")
+    public ResponseEntity<Payment> verifyPayment(@PathVariable Long id) {
+        Payment payment = paymentService.verifyPayment(id);
+        return ResponseEntity.ok(payment);
+    }
+
+    @PostMapping("/rollback")
+    public ResponseEntity<Payment> rollbackPayment(@RequestBody RollbackRequestDTO rollbackRequestDTO) {
+        Payment payment = paymentService.rollbackPayment(rollbackRequestDTO.getPaymentId(), rollbackRequestDTO.getReason());
+        return ResponseEntity.ok(payment);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Payment> getPaymentById(@PathVariable Long id) {
+        Payment payment = paymentService.getPaymentById(id);
+        return ResponseEntity.ok(payment);
+    }
+
+    @GetMapping("/student/{id}")
+    public ResponseEntity<List<Payment>> getPaymentsByStudentId(@PathVariable Long id) {
+        List<Payment> payments = paymentService.getPaymentByStudentId(id);
+        return ResponseEntity.ok(payments);
+    }
+
+}
