@@ -11,10 +11,10 @@ import java.util.Arrays;
 import java.util.List;
 
 @Repository
-public interface AcademicRecordRepository extends JpaRepository<AcademicRecord, Integer> {
+public interface AcademicRecordRepository extends JpaRepository<AcademicRecord, Long> {
     List<AcademicRecord> findByStudent(Student student);
-    List<AcademicRecord> findByCourseId(int courseId);
-    List<AcademicRecord> findByTermId(int termId);
+    List<AcademicRecord> findByCourseId(Long courseId);
+    List<AcademicRecord> findByTermId(Long termId);
     @Query("SELECT rec FROM AcademicRecord rec WHERE " +
             "LOWER(rec.student.name) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
             "LOWER(rec.student.cardId) LIKE LOWER(CONCAT('%', :query, '%'))")

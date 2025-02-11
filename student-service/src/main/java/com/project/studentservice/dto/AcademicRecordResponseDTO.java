@@ -14,11 +14,11 @@ import java.io.Serializable;
 @AllArgsConstructor
 @NoArgsConstructor
 public class AcademicRecordResponseDTO {
-    private int id;
+    private Long id;
     private String studentCardId;
     private String courseCode;
     private String courseName;
-    private int termId;
+    private Long termId;
     private Float midExam; // New field
     private Float finalExam; // New field
     private Float assignment; // New field

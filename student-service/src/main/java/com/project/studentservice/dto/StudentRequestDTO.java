@@ -17,7 +17,6 @@ public class StudentRequestDTO {
     @NotEmpty(message = "Name cannot be empty")
     private String name;
 
-    @NotEmpty(message = "Card ID cannot be empty")
     private String cardId;
 
     @Email(message = "Invalid email format")
@@ -29,8 +28,11 @@ public class StudentRequestDTO {
     @NotEmpty(message = "Address cannot be empty")
     private String address;
 
+    private String emergencyContact;
+
     @NotNull(message = "Enrollment status is required")
     private String enrollmentStatus;
+
 
     private Long batchId;
 }

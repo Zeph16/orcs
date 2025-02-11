@@ -12,12 +12,13 @@ import java.io.Serializable;
 @AllArgsConstructor
 @NoArgsConstructor
 public class StudentResponseDTO implements Serializable {
-    private Integer id;
+    private Long id;
     private String name;
     private String cardId;
     private String email;
     private String phone;
     private String address;
     private String enrollmentStatus;
+    private String emergencyContact;
     private BatchResponseDTO batch;
 }

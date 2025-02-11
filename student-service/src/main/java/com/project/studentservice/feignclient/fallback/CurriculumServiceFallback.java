@@ -2,6 +2,7 @@ package com.project.studentservice.feignclient.fallback;
 
 import com.project.studentservice.feignclient.client.CurriculumServiceClient;
 import com.project.studentservice.feignclient.dto.CourseResponseDTO;
+import com.project.studentservice.feignclient.dto.CourseType;
 import com.project.studentservice.feignclient.dto.DepartmentResponseDTO;
 import com.project.studentservice.feignclient.dto.ProgramResponseDTO;
 import org.springframework.http.ResponseEntity;
@@ -23,8 +24,7 @@ public class CurriculumServiceFallback implements CurriculumServiceClient {
                 .title("fallback course")
                 .code("fbcrs")
                 .creditHrs(0)
-                .status("fallback")
-                .type("fallback")
+                .type(CourseType.MAJOR)
                 .build();
         return ResponseEntity.ok(courseResponseDTO);
     }

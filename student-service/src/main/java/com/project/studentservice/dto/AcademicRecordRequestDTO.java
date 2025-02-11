@@ -17,10 +17,10 @@ public class AcademicRecordRequestDTO {
     private String studentCardId;
 
     @NotNull(message = "Course ID is required")
-    private Integer courseId;
+    private Long courseId;
 
     @NotNull(message = "Term ID is required")
-    private Integer termId;
+    private Long termId;
 
     @NotNull(message = "Mid Exam score is required")
     private Float midExam;
