@@ -7,10 +7,9 @@ import com.project.studentservice.dto.GPAResponseDTO;
 import com.project.studentservice.exception.ResourceNotFoundException;
 import com.project.studentservice.feignclient.client.CurriculumServiceClient;
 import com.project.studentservice.feignclient.client.EnrollmentServiceClient;
-import com.project.studentservice.feignclient.dto.CourseResponseDTO;
-import com.project.studentservice.feignclient.dto.CourseType;
-import com.project.studentservice.feignclient.dto.EnrollmentResponseDTO;
+import com.project.studentservice.feignclient.dto.*;
 import com.project.studentservice.model.AcademicRecord;
+import com.project.studentservice.model.Grade;
 import com.project.studentservice.model.Student;
 import com.project.studentservice.repository.AcademicRecordRepository;
 import com.project.studentservice.util.GradeConfiguration;
@@ -33,14 +32,34 @@ public class AcademicRecordService {
     private final GradeConfiguration gradeConfiguration;
 
     public AcademicRecord createAcademicRecord(AcademicRecord academicRecord) {
-        // This is where enrollment service should be notified
-        // Enrollments have no knowledge of the course id, just the offering id
-        // Academic records have no knowledge of the offeringid, just the courseid
-        // Option 1: add a method in curriculum service to get the offering by courseid + termid, then use this to update the enrollment
-        // Option 2: refactor academic record to instead reference courseofferingid instead of courseid + termid
-        // Best option: ?
-        // Note for Option 2: course type is fetched using courseid when calculating gpa, replace with courseofferingid and add feign methods
-        // Note for Option 2: the getAcademicRecordsByCourse method now needs to call curriculum service to get the courseid
+        ResponseEntity<List<EnrollmentResponseDTO>> enrollmentResponse = enrollmentServiceClient.getEnrollmentsByStudent(academicRecord.getStudent().getId(), List.of("ENROLLED"));
+        if (enrollmentResponse.getStatusCode() != HttpStatus.OK || enrollmentResponse.getBody() == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Course not found");
+        }
+        List<EnrollmentResponseDTO> enrollments = enrollmentResponse.getBody().stream().filter(e -> e.getCourseOffering().getCourse().getCourseId().equals(academicRecord.getCourseId())).toList();
+        if (enrollments.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Course not found");
+        }
+
+        EnrollmentStatus status = EnrollmentStatus.COMPLETED;
+        if (academicRecord.getGrade().equals(Grade.RC) ||
+            academicRecord.getGrade().equals(Grade.RA) ||
+            academicRecord.getGrade().equals(Grade.F)) {
+            status = EnrollmentStatus.NOT_COMPLETED;
+        }
+        CourseOfferingResponseDTO courseOffering = enrollments.get(0).getCourseOffering();
+        ResponseEntity<EnrollmentResponseDTO> updateResponse = enrollmentServiceClient.updateEnrollment(enrollments.get(0).getEnrollmentID(), EnrollmentRequestDTO.builder()
+                        .enrollmentID(enrollments.get(0).getEnrollmentID())
+                        .offeringID(courseOffering.getOfferingID())
+                        .status(status)
+                        .studentID(academicRecord.getStudent().getId())
+                        .type(enrollments.get(0).getType())
+                .build());
+
+        if (updateResponse.getStatusCode() != HttpStatus.OK || updateResponse.getBody() == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Could not update enrollment status");
+        }
+
         return academicRecordRepository.save(academicRecord);
     }
 

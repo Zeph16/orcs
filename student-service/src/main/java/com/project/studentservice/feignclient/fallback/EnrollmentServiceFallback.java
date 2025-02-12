@@ -5,6 +5,8 @@ import com.project.studentservice.feignclient.dto.EnrollmentRequestDTO;
 import com.project.studentservice.feignclient.dto.EnrollmentResponseDTO;
 import org.springframework.http.ResponseEntity;
 
+import java.util.List;
+
 public class EnrollmentServiceFallback implements EnrollmentServiceClient {
 
     @Override
@@ -14,6 +16,11 @@ public class EnrollmentServiceFallback implements EnrollmentServiceClient {
 
     @Override
     public ResponseEntity<EnrollmentResponseDTO> getEnrollmentById(Long enrollmentId) {
+        return null;
+    }
+
+    @Override
+    public ResponseEntity<List<EnrollmentResponseDTO>> getEnrollmentsByStudent(Long studentId, List<String> status) {
         return null;
     }
 
