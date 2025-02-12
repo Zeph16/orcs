@@ -43,8 +43,7 @@ public class AcademicRecordService {
 
         EnrollmentStatus status = EnrollmentStatus.COMPLETED;
         if (academicRecord.getGrade().equals(Grade.RC) ||
-            academicRecord.getGrade().equals(Grade.RA) ||
-            academicRecord.getGrade().equals(Grade.F)) {
+            academicRecord.getGrade().equals(Grade.RA)) {
             status = EnrollmentStatus.NOT_COMPLETED;
         }
         CourseOfferingResponseDTO courseOffering = enrollments.get(0).getCourseOffering();
