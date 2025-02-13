@@ -52,7 +52,7 @@ public class EnrollmentController {
 
     @GetMapping("/students/{studentId}")
     public ResponseEntity<List<EnrollmentResponseDTO>> getEnrollmentsByStudent(
-            @PathVariable Long studentId,
+            @PathVariable int studentId,
             @RequestParam(required = false) List<String> status) {
 
         if (status == null || status.isEmpty()) {

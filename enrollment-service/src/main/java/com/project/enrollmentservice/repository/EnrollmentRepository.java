@@ -9,9 +9,9 @@ import java.util.List;
 
 @Repository
 public interface EnrollmentRepository extends JpaRepository<Enrollment, Long> {
-    List<Enrollment> findByStudentID(Long studentID);
+    List<Enrollment> findByStudentID(int studentID);
     List<Enrollment> findByOfferingID(Long offeringID);
     List<Enrollment> findByStatus(Enrollment.EnrollmentStatus status);
     List<Enrollment> findByEnrollmentDateBetween(LocalDate startDate, LocalDate endDate);
-    List<Enrollment> findByStudentIDAndStatusIn(Long studentID, List<Enrollment.EnrollmentStatus> statuses);
+    List<Enrollment> findByStudentIDAndStatusIn(int studentID, List<Enrollment.EnrollmentStatus> statuses);
 }

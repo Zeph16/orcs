@@ -68,7 +68,7 @@ public class EnrollmentService {
     }
 
     // Additional methods for custom queries
-    public List<EnrollmentResponseDTO> getEnrollmentsByStudentAndStatus(Long studentId, List<Enrollment.EnrollmentStatus> statuses) {
+    public List<EnrollmentResponseDTO> getEnrollmentsByStudentAndStatus(int studentId, List<Enrollment.EnrollmentStatus> statuses) {
         // Fetch enrollments with the specified statuses
         return enrollmentRepository.findByStudentIDAndStatusIn(studentId, statuses).stream()
                 .map(this::mapToEnrollmentResponseDTO)
@@ -76,7 +76,7 @@ public class EnrollmentService {
                 .collect(Collectors.toList());
     }
 
-    public List<EnrollmentResponseDTO> getEnrollmentsByStudent(Long studentId) {
+    public List<EnrollmentResponseDTO> getEnrollmentsByStudent(int studentId) {
         return enrollmentRepository.findByStudentID(studentId).stream()
                 .map(this::mapToEnrollmentResponseDTO)
                 .collect(Collectors.toList());
