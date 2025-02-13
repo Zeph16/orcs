@@ -36,6 +36,11 @@ public class TermController {
         return ResponseEntity.ok(termService.getTermByCode(code));
     }
 
+    @GetMapping("/current")
+    public ResponseEntity<TermResponseDTO> getCurrentTerm() {
+        return ResponseEntity.ok(termService.getCurrentTerm());
+    }
+
     @GetMapping
     public ResponseEntity<List<TermResponseDTO>> getAllTerms() {
         return ResponseEntity.ok(termService.getAllTerms());

@@ -1,6 +1,7 @@
 package com.project.curriculumservice.feignclient.fallback;
 
 import com.project.curriculumservice.dto.CourseOfferingResponseDTO;
+import com.project.curriculumservice.dto.EnrollmentRequestResponseDTO;
 import com.project.curriculumservice.feignclient.client.EnrollmentServiceClient;
 import com.project.curriculumservice.feignclient.dtos.EnrollmentResponseDTO;
 import com.project.curriculumservice.feignclient.dtos.EnrollmentStatus;
@@ -13,6 +14,11 @@ public class EnrollmentServiceFallback implements EnrollmentServiceClient {
     @Override
     public ResponseEntity<List<EnrollmentResponseDTO>> getEnrollmentsByStudent(int studentId, List<String> status) {
         return null;
+    }
+
+    @Override
+    public ResponseEntity<EnrollmentRequestResponseDTO> getRequestByStudentIdAndOfferingId(Long studentId, Long offeringId) {
+        return ResponseEntity.ok(null);
     }
 
     @Override

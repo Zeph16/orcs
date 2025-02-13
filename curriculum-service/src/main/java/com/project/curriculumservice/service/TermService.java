@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.Year;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -75,6 +76,11 @@ public class TermService {
         Term term = termRepository.findById(termId)
                 .orElseThrow(() -> new ResourceNotFoundException("Term not found with ID: " + termId));
         termRepository.delete(term);
+    }
+
+    public TermResponseDTO getCurrentTerm() {
+        String currentTermCode = getCurrentTermCode();
+        return getTermByCode(currentTermCode);
     }
 
     public String getCurrentTermCode() {

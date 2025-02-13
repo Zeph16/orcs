@@ -67,7 +67,18 @@ public class CourseOfferingController {
         );
     }
 
+    @GetMapping("/search/course_id/{courseId}")
+    public ResponseEntity<List<CourseOfferingResponseDTO>> getCourseOfferingsByCourseId(
+            @PathVariable Long courseId) {
+        return ResponseEntity.ok(
+                courseOfferingService.getCourseOfferingsByCourseId(courseId)
+        );
+    }
 
+    @GetMapping("/current")
+    public ResponseEntity<List<CourseOfferingResponseDTO>> getCurrentCourseOfferings() {
+        return ResponseEntity.ok(courseOfferingService.getCurrentCourseOfferings());
+    }
     @GetMapping
     public ResponseEntity<List<CourseOfferingResponseDTO>> getAllCourseOfferings() {
         return ResponseEntity.ok(

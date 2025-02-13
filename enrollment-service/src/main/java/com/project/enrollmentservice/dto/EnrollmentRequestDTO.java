@@ -14,7 +14,7 @@ public class EnrollmentRequestDTO {
     private Long enrollmentID;
 
     @NotNull(message = "Student ID is required")
-    private Long studentID;
+    private Integer studentID;
 
     @NotNull(message = "Offering ID is required")
     private Long offeringID;

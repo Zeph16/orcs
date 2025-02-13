@@ -15,7 +15,7 @@ import java.time.LocalDate;
 @Builder
 public class EnrollmentResponseDTO {
     private Long enrollmentID;
-    private Long studentID;
+    private Integer studentID;
     private CourseOfferingResponseDTO courseOffering;
     private Enrollment.EnrollmentType type;
     private Enrollment.EnrollmentStatus status;
