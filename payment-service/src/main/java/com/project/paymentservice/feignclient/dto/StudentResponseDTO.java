@@ -1,4 +1,4 @@
-package com.project.studentservice.dto;
+package com.project.paymentservice.feignclient.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -19,6 +19,4 @@ public class StudentResponseDTO implements Serializable {
     private String phone;
     private String address;
     private String enrollmentStatus;
-    private String emergencyContact;
-    private BatchResponseDTO batch;
 }

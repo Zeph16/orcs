@@ -14,14 +14,14 @@ import lombok.NoArgsConstructor;
 public class AcademicRecord {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Long id;
 
     @ManyToOne
     @JoinColumn(name = "student_id", nullable = false)
     private Student student;
 
-    private int courseId;
-    private int termId;
+    private Long courseId;
+    private Long termId;
 
     private Float midExam;
     private Float finalExam;

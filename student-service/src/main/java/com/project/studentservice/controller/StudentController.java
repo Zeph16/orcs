@@ -1,5 +1,6 @@
 package com.project.studentservice.controller;
 
+import com.project.studentservice.dto.GPAResponseDTO;
 import com.project.studentservice.dto.StudentRequestDTO;
 import com.project.studentservice.dto.StudentResponseDTO;
 import com.project.studentservice.model.Student;
@@ -19,14 +20,14 @@ import java.util.stream.Collectors;
 public class StudentController {
     private final StudentService studentService;
 
-    @PostMapping("/{batchId}")
+    @PostMapping
     public ResponseEntity<StudentResponseDTO> registerStudent(@RequestBody StudentRequestDTO studentDTO, @PathVariable Long batchId) {
         Student student = studentService.registerStudent(studentService.toEntity(studentDTO), batchId);
         return new ResponseEntity<>(studentService.toDTO(student), HttpStatus.CREATED);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<StudentResponseDTO> getStudentById(@PathVariable int id) {
+    public ResponseEntity<StudentResponseDTO> getStudentById(@PathVariable Long id) {
         Student student = studentService.getStudentById(id);
         return ResponseEntity.ok(studentService.toDTO(student));
     }
@@ -38,7 +39,7 @@ public class StudentController {
     }
 
     @GetMapping("/batch/{batchId}")
-    public ResponseEntity<List<StudentResponseDTO>> getStudentsByBatch(@PathVariable int batchId) {
+    public ResponseEntity<List<StudentResponseDTO>> getStudentsByBatch(@PathVariable Long batchId) {
         List<Student> students = studentService.getStudentsByBatch(batchId);
         return ResponseEntity.ok(students.stream().map(studentService::toDTO).collect(Collectors.toList()));
     }
@@ -56,13 +57,13 @@ public class StudentController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<StudentResponseDTO> updateStudent(@PathVariable int id, @RequestBody StudentRequestDTO studentDTO) {
+    public ResponseEntity<StudentResponseDTO> updateStudent(@PathVariable Long id, @RequestBody StudentRequestDTO studentDTO) {
         Student student = studentService.updateStudent(id, studentService.toEntity(studentDTO));
         return ResponseEntity.ok(studentService.toDTO(student));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteStudent(@PathVariable int id) {
+    public ResponseEntity<Void> deleteStudent(@PathVariable Long id) {
         studentService.deleteStudent(id);
         return ResponseEntity.noContent().build();
     }

@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Random;
 
 
 @Service
@@ -19,22 +20,20 @@ import java.util.List;
 public class StudentService {
     private final StudentRepository studentRepository;
     private final BatchService batchService;
+    private final Random random = new Random();
 
     public Student registerStudent(Student student, Long batchId) {
         if (studentRepository.findByEmail(student.getEmail()).isPresent()) {
             throw new DuplicateResourceException("Student with this email already exists");
         }
 
-        if (studentRepository.findByCardId(student.getCardId()).isPresent()) {
-            throw new DuplicateResourceException("Student with this card ID already exists");
-        }
-
         Batch batch = batchService.getBatchById(batchId);
         student.setBatch(batch);
+        student.setCardId(generateCardId());
         return studentRepository.save(student);
     }
 
-    public Student getStudentById(int id) {
+    public Student getStudentById(Long id) {
         return studentRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Student not found with ID:" + id));
     }
@@ -48,7 +47,7 @@ public class StudentService {
         return studentRepository.findAll();
     }
 
-    public List<Student> getStudentsByBatch(int batchId) {
+    public List<Student> getStudentsByBatch(Long batchId) {
         return studentRepository.findByBatchId(batchId);
     }
 
@@ -56,7 +55,7 @@ public class StudentService {
         return studentRepository.findByBatchSection(section);
     }
 
-    public Student updateStudent(int id, Student studentDetails) {
+    public Student updateStudent(Long id, Student studentDetails) {
         Student student = getStudentById(id);
         student.setName(studentDetails.getName());
         student.setCardId(studentDetails.getCardId());
@@ -68,7 +67,7 @@ public class StudentService {
         return studentRepository.save(student);
     }
 
-    public void deleteStudent(int id) {
+    public void deleteStudent(Long id) {
         Student student = getStudentById(id);
         studentRepository.delete(student);
     }
@@ -81,6 +80,7 @@ public class StudentService {
                 .phone(dto.getPhone())
                 .address(dto.getAddress())
                 .enrollmentStatus(dto.getEnrollmentStatus())
+                .emergencyContact(dto.getEmergencyContact())
                 .batch(batchService.getBatchById(dto.getBatchId()))
                 .build();
     }
@@ -94,7 +94,20 @@ public class StudentService {
                 .phone(student.getPhone())
                 .address(student.getAddress())
                 .enrollmentStatus(student.getEnrollmentStatus())
+                .emergencyContact(student.getEmergencyContact())
                 .batch(batchService.toDTO(student.getBatch()))
                 .build();
+    }
+
+    public String generateCardId() {
+        String code;
+        do {
+            char first = (char) ('A' + random.nextInt(26));
+            char second = (char) ('A' + random.nextInt(26));
+            int number = random.nextInt(10000);
+            code = String.format("%c%c%04d", first, second, number);
+        } while (studentRepository.findByCardId(code).isPresent());
+
+        return code;
     }
 }

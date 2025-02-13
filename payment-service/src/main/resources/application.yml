@@ -5,7 +5,23 @@ spring:
   config:
     import: optional:configserver:http://localhost:8888
 
+  datasource:
+    url: jdbc:postgresql://localhost:5432/payment-service
+    username: zeph
+    password: zeph
+
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+
 eureka:
   client:
     serviceUrl:
       defaultZone: http://localhost:8761/eureka/
+
+chapa:
+  api:
+    secretKey: CHASECK_TEST-IkCxGUYtoMSxt5UIHkiUpLHe9clgVCct
+

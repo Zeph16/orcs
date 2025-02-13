@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 public class Student {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Long id;
     private String name;
 
     @Column(unique = true)
@@ -27,6 +27,8 @@ public class Student {
     private String phone;
     private String address;
     private String enrollmentStatus;
+
+    private String emergencyContact;
 
     @ManyToOne
     @JoinColumn(name = "batch_id", nullable = false)
