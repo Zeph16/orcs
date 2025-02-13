@@ -5,6 +5,7 @@ import com.project.enrollmentservice.dto.EnrollmentResponseDTO;
 import com.project.enrollmentservice.exception.ResourceNotFoundException;
 import com.project.enrollmentservice.feignclient.client.CurriculumServiceClient;
 import com.project.enrollmentservice.feignclient.dto.CourseOfferingResponseDTO;
+import com.project.enrollmentservice.feignclient.dto.CourseResponseDTO;
 import com.project.enrollmentservice.model.Enrollment;
 import com.project.enrollmentservice.repository.EnrollmentRepository;
 import jakarta.transaction.Transactional;
@@ -13,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -85,6 +87,20 @@ public class EnrollmentService {
                 .map(this::mapToEnrollmentResponseDTO)
                 .collect(Collectors.toList());
     }
+
+    public List<EnrollmentResponseDTO> getEnrollmentsByCourse(Long courseId) {
+        List<CourseOfferingResponseDTO> offerings = curriculumServiceClient.getCourseOfferingsByCourseId(courseId).getBody();
+
+        if (offerings == null || offerings.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        return offerings.stream()
+                .flatMap(offering -> enrollmentRepository.findByOfferingID(offering.getOfferingID()).stream())
+                .map(this::mapToEnrollmentResponseDTO)
+                .collect(Collectors.toList());
+    }
+
 
     private Enrollment mapToEnrollmentEntity(EnrollmentRequestDTO enrollmentDTO) {
         return Enrollment.builder()
