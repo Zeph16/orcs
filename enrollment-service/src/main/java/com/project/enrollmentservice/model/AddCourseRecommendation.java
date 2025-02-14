@@ -18,7 +18,7 @@ public class AddCourseRecommendation {
     private Long recommendationID;
 
     @Column(nullable = false)
-    private int studentID;
+    private Long studentID;
 
     @Column(nullable = false)
     private Long termID;

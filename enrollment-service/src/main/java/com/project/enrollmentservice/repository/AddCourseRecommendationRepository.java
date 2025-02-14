@@ -8,9 +8,9 @@ import java.util.List;
 
 @Repository
 public interface AddCourseRecommendationRepository extends JpaRepository<AddCourseRecommendation, Long> {
-    List<AddCourseRecommendation> findByStudentID(Integer studentId);
+    List<AddCourseRecommendation> findByStudentID(Long studentId);
     List<AddCourseRecommendation> findByTermID(Long termId);
     List<AddCourseRecommendation> findByCourseID(Long courseId);
-    List<AddCourseRecommendation> findByStudentIDAndTermID(int studentId, Long termId);
+    List<AddCourseRecommendation> findByStudentIDAndTermID(Long studentId, Long termId);
 }
 

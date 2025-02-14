@@ -21,7 +21,7 @@ public class StudentServiceFallback implements StudentServiceClient {
     }
 
     @Override
-    public ResponseEntity<StudentResponseDTO> getStudentById(int id) {
+    public ResponseEntity<StudentResponseDTO> getStudentById(Long id) {
         // Provide a default or fallback response
         StudentResponseDTO fallbackResponse = new StudentResponseDTO();
         fallbackResponse.setId(id);

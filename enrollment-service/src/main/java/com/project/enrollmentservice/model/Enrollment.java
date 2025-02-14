@@ -18,7 +18,7 @@ public class Enrollment {
     private Long enrollmentID;
 
     @NotNull(message = "Student ID is required")
-    private int studentID;
+    private Long studentID;
 
     @NotNull(message = "Offering ID is required")
     private Long offeringID;

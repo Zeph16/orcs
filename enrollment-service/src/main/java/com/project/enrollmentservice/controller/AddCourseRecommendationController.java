@@ -33,7 +33,7 @@ public class AddCourseRecommendationController {
 
     @GetMapping("/students/{studentId}")
     public ResponseEntity<List<AddCourseRecommendationResponse>> getRecommendationsByStudent(
-            @PathVariable Integer studentId) {
+            @PathVariable Long studentId) {
         List<AddCourseRecommendationResponse> responses = recommendationService.getRecommendationsByStudent(studentId);
         return ResponseEntity.ok(responses);
     }

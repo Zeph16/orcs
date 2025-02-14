@@ -16,5 +16,5 @@ public interface StudentServiceClient {
     @GetMapping("/api/batches/id/{id}")
     ResponseEntity<BatchResponseDTO> getBatchById(@PathVariable Long id);
     @GetMapping("/api/students/{id}")
-    public ResponseEntity<StudentResponseDTO> getStudentById(@PathVariable int id);
+    ResponseEntity<StudentResponseDTO> getStudentById(@PathVariable Long id);
 }

@@ -59,7 +59,7 @@ public class AddCourseRecommendationService {
         List<EnrollmentResponseDTO> enrollments = enrollmentService.getEnrollmentsByCourse(courseId);
 
         // Filter enrollments based on status and term code
-        List<Integer> studentIds = enrollments.stream()
+        List<Long> studentIds = enrollments.stream()
                 .filter(enrollment -> enrollment.getStatus() == Enrollment.EnrollmentStatus.NOT_COMPLETED)
                 .filter(enrollment -> !enrollment.getCourseOffering().getTerm().getCode().equals(currentTermCode))
                 .map(EnrollmentResponseDTO::getStudentID)
@@ -149,7 +149,7 @@ public class AddCourseRecommendationService {
         return buildResponse(recommendation, student, term, course);
     }
 
-    public List<AddCourseRecommendationResponse> getRecommendationsByStudent(Integer studentId) {
+    public List<AddCourseRecommendationResponse> getRecommendationsByStudent(Long studentId) {
         List<AddCourseRecommendation> recommendations = recommendationRepository.findByStudentID(studentId);
         if (recommendations.isEmpty()) {
             throw new ResourceNotFoundException("Recommendations not found for student ID: " + studentId);

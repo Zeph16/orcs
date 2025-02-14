@@ -38,7 +38,7 @@ public class CourseOfferingController {
     }
 
     @GetMapping("/student/{studentId}")
-    public ResponseEntity<List<CourseOfferingResponseDTO>>  getCourseOfferingsForStudent(@PathVariable int studentId) {
+    public ResponseEntity<List<CourseOfferingResponseDTO>>  getCourseOfferingsForStudent(@PathVariable Long studentId) {
         return ResponseEntity.ok(
                 courseOfferingService.getCourseOfferingsForStudent(studentId)
         );

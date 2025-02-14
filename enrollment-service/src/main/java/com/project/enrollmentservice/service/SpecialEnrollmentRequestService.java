@@ -27,7 +27,7 @@ public class SpecialEnrollmentRequestService {
     @Transactional
     public EnrollmentRequestResponseDTO createRequest(CreateEnrollmentRequestDTO requestDTO) {
         // Validate student and course offering exist
-        var studentResponse = studentServiceClient.getStudentById(requestDTO.getStudentID().intValue())
+        var studentResponse = studentServiceClient.getStudentById(requestDTO.getStudentID())
                 .getBody();
         var courseOfferingResponse = curriculumServiceClient.getCourseOfferingById(requestDTO.getOfferingID())
                 .getBody();
@@ -60,7 +60,7 @@ public class SpecialEnrollmentRequestService {
         var request = requestOptional.get();
 
         // Fetch student and course offering details
-        var studentResponse = studentServiceClient.getStudentById(request.getStudentID().intValue())
+        var studentResponse = studentServiceClient.getStudentById(request.getStudentID())
                 .getBody();
         var courseOfferingResponse = curriculumServiceClient.getCourseOfferingById(request.getOfferingID())
                 .getBody();
@@ -74,7 +74,7 @@ public class SpecialEnrollmentRequestService {
         var request = repository.findById(requestId)
                 .orElseThrow(() -> new ResourceNotFoundException("Request not found"));
 
-        var studentResponse = studentServiceClient.getStudentById(request.getStudentID().intValue())
+        var studentResponse = studentServiceClient.getStudentById(request.getStudentID())
                 .getBody();
         var courseOfferingResponse = curriculumServiceClient.getCourseOfferingById(request.getOfferingID())
                 .getBody();
@@ -86,7 +86,7 @@ public class SpecialEnrollmentRequestService {
     public List<EnrollmentRequestResponseDTO> getAllRequests() {
         return repository.findAll().stream()
                 .map(request -> {
-                    var studentResponse = studentServiceClient.getStudentById(request.getStudentID().intValue())
+                    var studentResponse = studentServiceClient.getStudentById(request.getStudentID())
                             .getBody();
                     var courseOfferingResponse = curriculumServiceClient.getCourseOfferingById(request.getOfferingID())
                             .getBody();
@@ -102,7 +102,7 @@ public class SpecialEnrollmentRequestService {
 
         request.setApprovalStatus(updateDTO.getApprovalStatus());
         var updatedRequest = repository.save(request);
-        var studentResponse = studentServiceClient.getStudentById(request.getStudentID().intValue())
+        var studentResponse = studentServiceClient.getStudentById(request.getStudentID())
                 .getBody();
         var courseOfferingResponse = curriculumServiceClient.getCourseOfferingById(request.getOfferingID())
                 .getBody();

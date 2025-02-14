@@ -10,6 +10,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class AddCourseRecommendationRequest {
-    private Integer studentID;
+    private Long studentID;
     private Long courseID;
 }

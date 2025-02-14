@@ -14,7 +14,7 @@ import java.util.List;
 public interface EnrollmentServiceClient {
     @GetMapping("/api/enrollments/students/{studentId}")
     ResponseEntity<List<EnrollmentResponseDTO>> getEnrollmentsByStudent(
-            @PathVariable int studentId,
+            @PathVariable Long studentId,
             @RequestParam(required = false) List<String> status);
 
     @GetMapping("/api/enrollment-requests/by-student-and-offering")

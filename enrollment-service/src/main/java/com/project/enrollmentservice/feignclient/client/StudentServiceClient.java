@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 @FeignClient(name = "student-service", fallback = StudentServiceFallback.class)
 public interface StudentServiceClient {
     @GetMapping("/api/students/{id}")
-    public ResponseEntity<StudentResponseDTO> getStudentById(@PathVariable int id);
+    public ResponseEntity<StudentResponseDTO> getStudentById(@PathVariable Long id);
     @GetMapping("/demo/hi")
     String hi();
 }

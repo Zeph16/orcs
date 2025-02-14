@@ -12,7 +12,7 @@ import java.util.List;
 
 public class EnrollmentServiceFallback implements EnrollmentServiceClient {
     @Override
-    public ResponseEntity<List<EnrollmentResponseDTO>> getEnrollmentsByStudent(int studentId, List<String> status) {
+    public ResponseEntity<List<EnrollmentResponseDTO>> getEnrollmentsByStudent(Long studentId, List<String> status) {
         return null;
     }
 

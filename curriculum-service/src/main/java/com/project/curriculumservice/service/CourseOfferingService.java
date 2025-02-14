@@ -108,7 +108,7 @@ public class CourseOfferingService {
         return mapToCourseOfferingResponseDTO(updatedOffering);
     }
 
-    public List<CourseOfferingResponseDTO> getCourseOfferingsForStudent(int studentID) {
+    public List<CourseOfferingResponseDTO> getCourseOfferingsForStudent(Long studentID) {
         String currentTermCode = termService.getCurrentTermCode();
         StudentResponseDTO studentResponseDTO = studentServiceClient.getStudentById(studentID).getBody();
 

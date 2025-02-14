@@ -7,7 +7,7 @@ import org.springframework.http.ResponseEntity;
 public class StudentServiceFallback implements StudentServiceClient {
 
     @Override
-    public ResponseEntity<StudentResponseDTO> getStudentById(int id) {
+    public ResponseEntity<StudentResponseDTO> getStudentById(Long id) {
         return null;
     }
 
