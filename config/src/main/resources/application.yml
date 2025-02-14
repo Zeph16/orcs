@@ -6,7 +6,7 @@ spring:
     config:
       server:
         git:
-          uri: file:./config/configurations
+          uri: file:../config/configurations
           default-label: main
           clone-on-start: true
 
