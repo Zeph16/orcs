@@ -3,6 +3,7 @@ package com.project.enrollmentservice.controller;
 import com.project.enrollmentservice.dto.EnrollmentRequestDTO;
 import com.project.enrollmentservice.dto.EnrollmentResponseDTO;
 import com.project.enrollmentservice.feignclient.dto.CourseOfferingResponseDTO;
+import com.project.enrollmentservice.feignclient.dto.CourseResponseDTO;
 import com.project.enrollmentservice.model.Enrollment;
 import com.project.enrollmentservice.service.EnrollmentService;
 import jakarta.validation.Valid;
@@ -69,5 +70,10 @@ public class EnrollmentController {
     @GetMapping("/offering/{offeringId}")
     public ResponseEntity<List<EnrollmentResponseDTO>> getEnrollmentsByOffering(@PathVariable Long offeringId) {
         return ResponseEntity.ok(enrollmentService.getEnrollmentsByOffering(offeringId));
+    }
+
+    @GetMapping("/course/{courseId}")
+    public ResponseEntity<List<EnrollmentResponseDTO>> getEnrollmentsByCourse(@PathVariable Long courseId) {
+        return ResponseEntity.ok(enrollmentService.getEnrollmentsByCourse(courseId));
     }
 }

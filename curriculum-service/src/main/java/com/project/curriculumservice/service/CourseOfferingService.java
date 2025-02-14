@@ -9,10 +9,14 @@ import com.project.curriculumservice.feignclient.dtos.EnrollmentStatus;
 import com.project.curriculumservice.feignclient.dtos.StudentResponseDTO;
 import com.project.curriculumservice.model.*;
 import com.project.curriculumservice.repository.*;
+import feign.FeignException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.client.HttpClientErrorException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -65,12 +69,23 @@ public class CourseOfferingService {
         // Update references if changed
         if (!existingOffering.getCourse().getCourseID().equals(requestDTO.getCourseId())) {
             CourseResponseDTO course = courseService.getCourseById(requestDTO.getCourseId());
-            existingOffering.setCourse(Course.builder().courseID(course.getCourseId()).build());
+            existingOffering.setCourse(
+                    Course.builder()
+                    .courseID(course.getCourseId())
+                    .title(course.getTitle())
+                    .code(course.getCode())
+                    .build()
+            );
         }
 
         if (!existingOffering.getTerm().getTermID().equals(requestDTO.getTermId())) {
             TermResponseDTO term = termService.getTermById(requestDTO.getTermId());
-            existingOffering.setTerm(Term.builder().termID(term.getTermId()).build());
+            existingOffering.setTerm(
+                    Term.builder()
+                    .termID(term.getTermId())
+                    .code(term.getCode())
+                    .build()
+            );
         }
 
         if (!existingOffering.getBatchID().equals(requestDTO.getBatchId())) {
@@ -93,10 +108,18 @@ public class CourseOfferingService {
         return mapToCourseOfferingResponseDTO(updatedOffering);
     }
 
-    public List<CourseOfferingResponseDTO> getCourseOfferingsForStudent(int studentID){
+    public List<CourseOfferingResponseDTO> getCourseOfferingsForStudent(Long studentID) {
         String currentTermCode = termService.getCurrentTermCode();
         StudentResponseDTO studentResponseDTO = studentServiceClient.getStudentById(studentID).getBody();
-        List<CourseOffering> allCourseOfferings = courseOfferingRepository.findByDepartmentIdAndProgramIdAndTermCode(studentResponseDTO.getBatch().getProgramId(), studentResponseDTO.getBatch().getDepartmentId(), currentTermCode);
+
+        // Fetch all course offerings for the student's department, program, and current term
+        List<CourseOffering> allCourseOfferings = courseOfferingRepository.findByDepartmentIdAndProgramIdAndTermCode(
+                studentResponseDTO.getBatch().getProgramId(),
+                studentResponseDTO.getBatch().getDepartmentId(),
+                currentTermCode
+        );
+
+        // Fetch enrolled and completed enrollments for the student
         List<CourseOfferingResponseDTO> enrolledAndCompletedEnrollments =
                 enrollmentServiceClient.getEnrollmentsByStudent(studentID, Arrays.asList("COMPLETED", "ENROLLED"))
                         .getBody()
@@ -104,16 +127,50 @@ public class CourseOfferingService {
                         .map(enrollment -> enrollment.getCourseOffering())
                         .collect(Collectors.toList());
 
+        // Extract course codes of enrolled and completed courses
         Set<String> enrolledAndCompletedCourseCodes = enrolledAndCompletedEnrollments.stream()
-                .map(enrollment -> enrollment.getCourse().getCode()) // Extract course code
+                .map(enrollment -> enrollment.getCourse().getCode())
                 .collect(Collectors.toSet());
+
+        // Filter out course offerings that the student has already enrolled in or completed
         List<CourseOffering> unEnrolledCourseOfferings = allCourseOfferings.stream()
-                .filter(courseOffering -> !enrolledAndCompletedCourseCodes.contains(courseOffering.getCourse().getCode())) // Exclude completed courses
+                .filter(courseOffering -> !enrolledAndCompletedCourseCodes.contains(courseOffering.getCourse().getCode()))
                 .collect(Collectors.toList());
 
+        // List to store eligible course offerings
         List<CourseOfferingResponseDTO> eligibleCourseOfferings = new ArrayList<>();
 
         for (CourseOffering courseOffering : unEnrolledCourseOfferings) {
+            // Check if the student has an approved special enrollment request for this course offering
+            EnrollmentRequestResponseDTO specialEnrollmentRequest = null;
+
+            try {
+                ResponseEntity<EnrollmentRequestResponseDTO> response =
+                        enrollmentServiceClient.getRequestByStudentIdAndOfferingId((long) studentID, courseOffering.getOfferingID());
+
+                if (response.getStatusCode().is2xxSuccessful()) { // Ensure it's a successful response
+                    specialEnrollmentRequest = response.getBody();
+                }
+            } catch (FeignException.NotFound e) {
+                // Handle 404 response gracefully
+                System.out.println("Enrollment request not found for student " + studentID + " and offering " + courseOffering.getOfferingID());
+            } catch (FeignException e) {
+                // Handle other Feign client errors
+                System.out.println("Feign error: " + e.status() + " - " + e.getMessage());
+                throw e; // Re-throw for other HTTP errors
+            } catch (Exception e) {
+                // Catch any other unexpected exceptions
+                System.out.println("Unexpected error: " + e.getClass().getName());
+                e.printStackTrace();
+            }
+
+            if (specialEnrollmentRequest != null &&
+                    specialEnrollmentRequest.getApprovalStatus() == EnrollmentRequestResponseDTO.ApprovalStatus.APPROVED) {
+                // If approved, add the course offering to the eligible list
+                eligibleCourseOfferings.add(mapToCourseOfferingResponseDTO(courseOffering));
+            }
+
+            // If no approved special enrollment request, check prerequisites
             List<PrerequisiteDTO> prerequisites = courseService.getPrerequisitesById(courseOffering.getCourse().getCourseID());
 
             // Check if all prerequisites are completed
@@ -121,12 +178,18 @@ public class CourseOfferingService {
                     .allMatch(prerequisite -> enrolledAndCompletedCourseCodes.contains(prerequisite.getCode()));
 
             if (allPrerequisitesCompleted) {
-                // Map to CourseOfferingResponseDTO and add to eligible list
+                // If prerequisites are met, add the course offering to the eligible list
                 eligibleCourseOfferings.add(mapToCourseOfferingResponseDTO(courseOffering));
             }
         }
 
         return eligibleCourseOfferings;
+    }
+    public List<CourseOfferingResponseDTO> getCurrentCourseOfferings() {
+        String currentTermCode = termService.getCurrentTermCode();
+        return courseOfferingRepository.findByTermCode(currentTermCode).stream()
+                .map(this::mapToCourseOfferingResponseDTO)
+                .collect(Collectors.toList());
     }
     public List<CourseOfferingResponseDTO> searchCourseOfferings(String query) {
         String sanitizedQuery = sanitizeSearchTerm(query);
@@ -137,6 +200,12 @@ public class CourseOfferingService {
 
     public List<CourseOfferingResponseDTO> getCourseOfferingsByBatchId(Long batchId) {
         return courseOfferingRepository.searchCourseOfferingsByBatchID(batchId).stream()
+                .map(this::mapToCourseOfferingResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    public List<CourseOfferingResponseDTO> getCourseOfferingsByCourseId(Long courseId) {
+        return courseOfferingRepository.searchCourseOfferingsByCourseID(courseId).stream()
                 .map(this::mapToCourseOfferingResponseDTO)
                 .collect(Collectors.toList());
     }

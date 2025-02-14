@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Arrays;
 import java.util.List;
 
 public interface CourseOfferingRepository extends JpaRepository<CourseOffering, Long> {
@@ -26,4 +27,10 @@ public interface CourseOfferingRepository extends JpaRepository<CourseOffering, 
             @Param("departmentId") Long departmentId,
             @Param("programId") Long programId,
             @Param("termCode") String termCode);
+
+    List<CourseOffering> findByTermCode(String termCode);
+
+    @Query("SELECT co FROM CourseOffering co WHERE co.course.courseID = :courseID")
+    List<CourseOffering> searchCourseOfferingsByCourseID(@Param("courseID") Long courseID);
+
 }

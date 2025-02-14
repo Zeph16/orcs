@@ -5,6 +5,16 @@ spring:
   config:
     import: optional:configserver:http://localhost:8888
 
+  datasource:
+    url: jdbc:postgresql://localhost:5432/curriculum-service
+    username: zeph
+    password: zeph
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: create
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
 eureka:
   client:
     serviceUrl:

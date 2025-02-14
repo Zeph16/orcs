@@ -5,6 +5,7 @@ import com.project.curriculumservice.dto.TermResponseDTO;
 import com.project.curriculumservice.exception.ResourceNotFoundException;
 import com.project.curriculumservice.model.Term;
 import com.project.curriculumservice.repository.TermRepository;
+import com.project.curriculumservice.util.EventPublisher;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.Year;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -19,12 +21,14 @@ import java.util.stream.Collectors;
 @Transactional
 public class TermService {
     private final TermRepository termRepository;
+    private final EventPublisher eventPublisher;
 
     public TermResponseDTO createTerm(TermRequestDTO termDTO) {
         validateTermDates(termDTO);
         Term term = mapToTermEntity(termDTO);
         term.setCode(generateTermCode(termDTO.getSeason(), termDTO.getAcademicYear()));
         term = termRepository.save(term);
+        eventPublisher.publishNewTermCreated(mapToTermResponseDTO(term));
         return mapToTermResponseDTO(term);
     }
 
@@ -75,6 +79,11 @@ public class TermService {
         Term term = termRepository.findById(termId)
                 .orElseThrow(() -> new ResourceNotFoundException("Term not found with ID: " + termId));
         termRepository.delete(term);
+    }
+
+    public TermResponseDTO getCurrentTerm() {
+        String currentTermCode = getCurrentTermCode();
+        return getTermByCode(currentTermCode);
     }
 
     public String getCurrentTermCode() {
