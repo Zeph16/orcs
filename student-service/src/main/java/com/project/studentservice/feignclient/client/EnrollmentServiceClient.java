@@ -16,16 +16,16 @@ public interface EnrollmentServiceClient {
     @GetMapping("/demo/hi")
     String hi();
 
-    @GetMapping("/{enrollmentId}")
+    @GetMapping("/api/enrollments/{enrollmentId}")
     ResponseEntity<EnrollmentResponseDTO> getEnrollmentById(@PathVariable Long enrollmentId);
 
-    @GetMapping("/students/{studentId}")
+    @GetMapping("/api/enrollments/students/{studentId}")
     ResponseEntity<List<EnrollmentResponseDTO>> getEnrollmentsByStudent(
             @PathVariable Long studentId,
             @RequestParam(required = false) List<String> status);
 
 
-    @PutMapping("/{enrollmentId}")
+    @PutMapping("/api/enrollments/{enrollmentId}")
     ResponseEntity<EnrollmentResponseDTO> updateEnrollment(
             @PathVariable Long enrollmentId,
             @Valid @RequestBody EnrollmentRequestDTO enrollmentDTO);
