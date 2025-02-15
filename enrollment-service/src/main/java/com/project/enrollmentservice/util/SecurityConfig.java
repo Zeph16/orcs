@@ -1,4 +1,4 @@
-package com.project.paymentservice.util;
+package com.project.enrollmentservice.util;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -18,15 +18,15 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .cors(Customizer.withDefaults())
+                .cors(AbstractHttpConfigurer::disable)
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(req ->
                         req.requestMatchers(
-                                "/demo/**"
-                        ).permitAll()
+                                        "/demo/**"
+                                ).permitAll()
                                 .anyRequest()
                                 .authenticated()
-                        )
+                )
                 .oauth2ResourceServer(auth ->
                         auth.jwt(token -> token.jwtAuthenticationConverter(new KeycloakJwtAuthenticationConverter()))
                 );
