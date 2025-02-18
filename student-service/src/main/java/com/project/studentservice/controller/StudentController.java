@@ -21,8 +21,8 @@ public class StudentController {
     private final StudentService studentService;
 
     @PostMapping
-    public ResponseEntity<StudentResponseDTO> registerStudent(@RequestBody StudentRequestDTO studentDTO, @PathVariable Long batchId) {
-        Student student = studentService.registerStudent(studentService.toEntity(studentDTO), batchId);
+    public ResponseEntity<StudentResponseDTO> registerStudent(@RequestBody StudentRequestDTO studentDTO) {
+        Student student = studentService.registerStudent(studentService.toEntity(studentDTO));
         return new ResponseEntity<>(studentService.toDTO(student), HttpStatus.CREATED);
     }
 

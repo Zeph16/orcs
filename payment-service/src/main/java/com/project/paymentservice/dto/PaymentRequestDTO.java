@@ -20,6 +20,9 @@ public class PaymentRequestDTO {
     @NotEmpty(message = "Payment amounts are needed")
     private List<BigDecimal> amounts;
 
+    @NotEmpty(message = "Offering ids are required")
+    private List<Long> offeringIDs;
+
     @NotBlank(message = "Reason for payment is needed")
     private String description;
 }

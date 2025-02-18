@@ -3,6 +3,7 @@ package com.project.enrollmentservice.controller;
 import com.project.enrollmentservice.dto.AddCourseRecommendationRequest;
 import com.project.enrollmentservice.dto.AddCourseRecommendationResponse;
 import com.project.enrollmentservice.dto.EligibleStudentsDTO;
+import com.project.enrollmentservice.feignclient.dto.CourseOfferingResponseDTO;
 import com.project.enrollmentservice.feignclient.dto.StudentResponseDTO;
 import com.project.enrollmentservice.service.AddCourseRecommendationService;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +36,12 @@ public class AddCourseRecommendationController {
     public ResponseEntity<List<AddCourseRecommendationResponse>> getRecommendationsByStudent(
             @PathVariable Long studentId) {
         List<AddCourseRecommendationResponse> responses = recommendationService.getRecommendationsByStudent(studentId);
+        return ResponseEntity.ok(responses);
+    }
+
+    @GetMapping("/students/{studentId}/offerings")
+    public ResponseEntity<List<CourseOfferingResponseDTO>> getRecommendedOfferingsByStudent(@PathVariable Long studentId) {
+        List<CourseOfferingResponseDTO> responses = recommendationService.getRecommendedOfferingsByStudent(studentId);
         return ResponseEntity.ok(responses);
     }
 

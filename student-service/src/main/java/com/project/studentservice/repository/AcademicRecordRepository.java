@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface AcademicRecordRepository extends JpaRepository<AcademicRecord, Long> {
@@ -19,4 +20,5 @@ public interface AcademicRecordRepository extends JpaRepository<AcademicRecord, 
             "LOWER(rec.student.name) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
             "LOWER(rec.student.cardId) LIKE LOWER(CONCAT('%', :query, '%'))")
     List<AcademicRecord> searchAcademicRecords(@Param("query")String query);
+    Optional<AcademicRecord> findByStudentIdAndCourseIdAndTermId(Long id, Long courseId, Long termId);
 }

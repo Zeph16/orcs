@@ -4,6 +4,7 @@ package com.project.studentservice.service;
 import com.project.studentservice.dto.AcademicRecordRequestDTO;
 import com.project.studentservice.dto.AcademicRecordResponseDTO;
 import com.project.studentservice.dto.GPAResponseDTO;
+import com.project.studentservice.exception.OperationNotAllowedException;
 import com.project.studentservice.exception.ResourceNotFoundException;
 import com.project.studentservice.feignclient.client.CurriculumServiceClient;
 import com.project.studentservice.feignclient.client.EnrollmentServiceClient;
@@ -32,33 +33,59 @@ public class AcademicRecordService {
     private final GradeConfiguration gradeConfiguration;
 
     public AcademicRecord createAcademicRecord(AcademicRecord academicRecord) {
-        ResponseEntity<List<EnrollmentResponseDTO>> enrollmentResponse = enrollmentServiceClient.getEnrollmentsByStudent(academicRecord.getStudent().getId(), List.of("ENROLLED"));
-        if (enrollmentResponse.getStatusCode() != HttpStatus.OK || enrollmentResponse.getBody() == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Course not found");
-        }
-        List<EnrollmentResponseDTO> enrollments = enrollmentResponse.getBody().stream().filter(e -> e.getCourseOffering().getCourse().getCourseId().equals(academicRecord.getCourseId())).toList();
-        if (enrollments.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Course not found");
+        // Check if an academic record already exists for the same student, course, and term
+        Optional<AcademicRecord> existingRecord = academicRecordRepository.findByStudentIdAndCourseIdAndTermId(
+                academicRecord.getStudent().getId(),
+                academicRecord.getCourseId(),
+                academicRecord.getTermId()
+        );
+
+        if (existingRecord.isPresent()) {
+            throw new OperationNotAllowedException("This course has already been graded for a student in the provided data.");
         }
 
+        // Fetch enrollments for the student
+        ResponseEntity<List<EnrollmentResponseDTO>> enrollmentResponse = enrollmentServiceClient.getEnrollmentsByStudent(
+                academicRecord.getStudent().getId(), List.of("ENROLLED")
+        );
+
+        if (enrollmentResponse.getStatusCode() != HttpStatus.OK || enrollmentResponse.getBody() == null) {
+            throw new ResourceNotFoundException("Course not found");
+        }
+
+        // Filter enrollments for the specific course
+        List<EnrollmentResponseDTO> enrollments = enrollmentResponse.getBody().stream()
+                .filter(e -> e.getCourseOffering().getCourse().getCourseId().equals(academicRecord.getCourseId()))
+                .toList();
+
+        if (enrollments.isEmpty()) {
+            throw new ResourceNotFoundException("The student hasn't enrolled in the course");
+        }
+
+        // Determine enrollment status based on the grade
         EnrollmentStatus status = EnrollmentStatus.COMPLETED;
-        if (academicRecord.getGrade().equals(Grade.RC) ||
-            academicRecord.getGrade().equals(Grade.RA)) {
+        if (academicRecord.getGrade().equals(Grade.RC) || academicRecord.getGrade().equals(Grade.RA)) {
             status = EnrollmentStatus.NOT_COMPLETED;
         }
+
+        // Update the enrollment status
         CourseOfferingResponseDTO courseOffering = enrollments.get(0).getCourseOffering();
-        ResponseEntity<EnrollmentResponseDTO> updateResponse = enrollmentServiceClient.updateEnrollment(enrollments.get(0).getEnrollmentID(), EnrollmentRequestDTO.builder()
+        ResponseEntity<EnrollmentResponseDTO> updateResponse = enrollmentServiceClient.updateEnrollment(
+                enrollments.get(0).getEnrollmentID(),
+                EnrollmentRequestDTO.builder()
                         .enrollmentID(enrollments.get(0).getEnrollmentID())
                         .offeringID(courseOffering.getOfferingID())
                         .status(status)
                         .studentID(academicRecord.getStudent().getId())
                         .type(enrollments.get(0).getType())
-                .build());
+                        .build()
+        );
 
         if (updateResponse.getStatusCode() != HttpStatus.OK || updateResponse.getBody() == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Could not update enrollment status");
+            throw new ResourceNotFoundException("Could not update enrollment status");
         }
 
+        // Save the new academic record
         return academicRecordRepository.save(academicRecord);
     }
 

@@ -7,6 +7,7 @@ import com.project.enrollmentservice.dto.EnrollmentResponseDTO;
 import com.project.enrollmentservice.exception.ResourceNotFoundException;
 import com.project.enrollmentservice.feignclient.client.CurriculumServiceClient;
 import com.project.enrollmentservice.feignclient.client.StudentServiceClient;
+import com.project.enrollmentservice.feignclient.dto.CourseOfferingResponseDTO;
 import com.project.enrollmentservice.feignclient.dto.CourseResponseDTO;
 import com.project.enrollmentservice.feignclient.dto.StudentResponseDTO;
 import com.project.enrollmentservice.feignclient.dto.TermResponseDTO;
@@ -19,8 +20,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -58,46 +62,76 @@ public class AddCourseRecommendationService {
         // Fetch enrollments for the course
         List<EnrollmentResponseDTO> enrollments = enrollmentService.getEnrollmentsByCourse(courseId);
 
-        // Filter enrollments based on status and term code
-        List<Long> studentIds = enrollments.stream()
+        // Group by student ID and select the latest enrollment based on enrollmentDate
+        Map<Long, EnrollmentResponseDTO> latestEnrollments = enrollments.stream()
+                .collect(Collectors.toMap(
+                        EnrollmentResponseDTO::getStudentID, // Key: Student ID
+                        Function.identity(), // Value: Enrollment object
+                        (existing, replacement) -> existing.getEnrollmentDate().isAfter(replacement.getEnrollmentDate())
+                                ? existing
+                                : replacement // Keep the latest enrollment
+                ));
+
+        // Extract the latest enrollments as a list
+        List<EnrollmentResponseDTO> filteredEnrollments = new ArrayList<>(latestEnrollments.values());
+
+        // Apply the filtering based on status and term code
+        List<Long> studentIds = filteredEnrollments.stream()
                 .filter(enrollment -> enrollment.getStatus() == Enrollment.EnrollmentStatus.NOT_COMPLETED)
                 .filter(enrollment -> !enrollment.getCourseOffering().getTerm().getCode().equals(currentTermCode))
                 .map(EnrollmentResponseDTO::getStudentID)
-                .distinct() // Avoid duplicate student IDs
+                .distinct()
                 .collect(Collectors.toList());
 
-        // Fetch student details, their enrollments, and recommendations, then map to EligibleStudentsDTO
-        return studentIds.stream()
+        // Get students who already have recommendations for this course in the current term
+        List<AddCourseRecommendation> existingRecommendations = recommendationRepository.findByCourseIDAndTermID(courseId, currentTermId);
+        List<Long> studentsWithExistingRecommendations = existingRecommendations.stream()
+                .map(AddCourseRecommendation::getStudentID)
+                .collect(Collectors.toList());
+
+        // Filter out students who already have recommendations
+        List<Long> eligibleStudentIds = studentIds.stream()
+                .filter(studentId -> !studentsWithExistingRecommendations.contains(studentId))
+                .collect(Collectors.toList());
+
+        // Fetch student details and map to EligibleStudentsDTO
+        return eligibleStudentIds.stream()
                 .map(studentId -> {
-                    // Fetch the student details
                     StudentResponseDTO student = studentClient.getStudentById(studentId).getBody();
+                    if (student == null) return null;
 
                     // Fetch all enrollments for the student
                     List<EnrollmentResponseDTO> studentEnrollments = enrollmentService.getEnrollmentsByStudent(studentId);
 
+                    // Get only the latest enrollment per course
+                    Map<Long, EnrollmentResponseDTO> latestStudentEnrollments = studentEnrollments.stream()
+                            .collect(Collectors.toMap(
+                                    enrollment -> enrollment.getCourseOffering().getCourse().getCourseId(),
+                                    Function.identity(),
+                                    (existing, replacement) -> existing.getEnrollmentDate().isAfter(replacement.getEnrollmentDate())
+                                            ? existing
+                                            : replacement
+                            ));
+
                     // Filter enrollments with status ENROLLED for the current term
-                    List<EnrollmentResponseDTO> enrolledCourses = studentEnrollments.stream()
+                    List<EnrollmentResponseDTO> enrolledCourses = latestStudentEnrollments.values().stream()
                             .filter(enrollment -> enrollment.getCourseOffering().getTerm().getCode().equals(currentTermCode))
                             .filter(enrollment -> enrollment.getStatus() == Enrollment.EnrollmentStatus.ENROLLED)
                             .collect(Collectors.toList());
 
-                    // Count the number of courses of each type (courses taking)
+                    // Count courses by type
                     int majorCoursesTaking = (int) enrolledCourses.stream()
                             .filter(enrollment -> enrollment.getCourseOffering().getCourse().getType() == CourseResponseDTO.CourseType.MAJOR)
                             .count();
-
                     int commonCoursesTaking = (int) enrolledCourses.stream()
                             .filter(enrollment -> enrollment.getCourseOffering().getCourse().getType() == CourseResponseDTO.CourseType.COMMON)
                             .count();
-
                     int electiveCoursesTaking = (int) enrolledCourses.stream()
                             .filter(enrollment -> enrollment.getCourseOffering().getCourse().getType() == CourseResponseDTO.CourseType.ELECTIVE)
                             .count();
 
-                    // Fetch recommended courses for the student and current term
+                    // Fetch recommended courses for the student
                     List<AddCourseRecommendation> recommendedCourses = recommendationRepository.findByStudentIDAndTermID(studentId, currentTermId);
-
-                    // Count the number of recommended courses of each type
                     int majorCoursesRecommended = 0;
                     int commonCoursesRecommended = 0;
                     int electiveCoursesRecommended = 0;
@@ -119,7 +153,6 @@ public class AddCourseRecommendationService {
                         }
                     }
 
-                    // Build the EligibleStudentsDTO
                     return EligibleStudentsDTO.builder()
                             .student(student)
                             .coursesTaking(EligibleStudentsDTO.CourseDetails.builder()
@@ -134,9 +167,10 @@ public class AddCourseRecommendationService {
                                     .build())
                             .build();
                 })
-                .filter(eligibleStudent -> eligibleStudent.getStudent() != null) // Ensure student is not null
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
+
 
     public AddCourseRecommendationResponse getRecommendation(Long recommendationId) {
         AddCourseRecommendation recommendation = recommendationRepository.findById(recommendationId)
@@ -147,6 +181,35 @@ public class AddCourseRecommendationService {
         CourseResponseDTO course = curriculumClient.getCourseById(recommendation.getCourseID()).getBody();
 
         return buildResponse(recommendation, student, term, course);
+    }
+
+    public List<CourseOfferingResponseDTO> getRecommendedOfferingsByStudent(Long studentId) {
+        String currentTermCode = curriculumClient.getCurrentTerm().getBody().getCode();
+
+        List<AddCourseRecommendation> recommendations = recommendationRepository.findByStudentID(studentId);
+
+        List<AddCourseRecommendation> currentTermRecommendations = recommendations.stream()
+                .filter(recommendation -> {
+                    String termCode = curriculumClient.getTermById(recommendation.getTermID()).getBody().getCode();
+                    return termCode != null && termCode.equals(currentTermCode);
+                })
+                .collect(Collectors.toList());
+
+        // Fetch course offerings for each recommended course
+        List<CourseOfferingResponseDTO> recommendedOfferings = new ArrayList<>();
+
+        for (AddCourseRecommendation recommendation : currentTermRecommendations) {
+            List<CourseOfferingResponseDTO> courseOfferings = curriculumClient.getCourseOfferingsByCourseId(recommendation.getCourseID()).getBody();
+            if (courseOfferings != null) {
+                List<CourseOfferingResponseDTO> currentTermOfferings = courseOfferings.stream()
+                        .filter(offering -> offering.getTerm().getCode().equals(currentTermCode))
+                        .collect(Collectors.toList());
+
+                recommendedOfferings.addAll(currentTermOfferings);
+            }
+        }
+
+        return recommendedOfferings;
     }
 
     public List<AddCourseRecommendationResponse> getRecommendationsByStudent(Long studentId) {
@@ -202,4 +265,5 @@ public class AddCourseRecommendationService {
         CourseResponseDTO course = curriculumClient.getCourseById(recommendation.getCourseID()).getBody();
         return buildResponse(recommendation, student, term, course);
     }
+
 }

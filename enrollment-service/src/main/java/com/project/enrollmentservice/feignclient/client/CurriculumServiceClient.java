@@ -8,6 +8,7 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
 
 import java.util.List;
 
@@ -21,9 +22,11 @@ public interface CurriculumServiceClient {
     @GetMapping("/api/course-offerings/search/course_id/{courseId}")
     ResponseEntity<List<CourseOfferingResponseDTO>> getCourseOfferingsByCourseId(
             @PathVariable Long courseId);
+    @PutMapping("/api/course-offerings/{offeringId}/decrement-seats")
+    ResponseEntity<Void> decrementAvailableSeats(@PathVariable Long offeringId);
     @GetMapping("/api/courses/{courseId}")
     ResponseEntity<CourseResponseDTO> getCourseById(@PathVariable Long courseId);
-    @GetMapping("/api/terms")
+    @GetMapping("/api/terms/{termId}")
     ResponseEntity<TermResponseDTO> getTermById(@PathVariable Long termId);
     @GetMapping("/api/terms/current")
     ResponseEntity<TermResponseDTO> getCurrentTerm();

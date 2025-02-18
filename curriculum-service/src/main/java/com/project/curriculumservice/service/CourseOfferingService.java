@@ -1,10 +1,12 @@
 package com.project.curriculumservice.service;
 
 import com.project.curriculumservice.dto.*;
+import com.project.curriculumservice.exception.DuplicateResourceException;
 import com.project.curriculumservice.exception.ResourceNotFoundException;
 import com.project.curriculumservice.feignclient.client.EnrollmentServiceClient;
 import com.project.curriculumservice.feignclient.client.StudentServiceClient;
 import com.project.curriculumservice.feignclient.dtos.BatchResponseDTO;
+import com.project.curriculumservice.feignclient.dtos.EnrollmentResponseDTO;
 import com.project.curriculumservice.feignclient.dtos.EnrollmentStatus;
 import com.project.curriculumservice.feignclient.dtos.StudentResponseDTO;
 import com.project.curriculumservice.model.*;
@@ -18,10 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.client.HttpClientErrorException;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -39,6 +38,17 @@ public class CourseOfferingService {
         CourseResponseDTO course = courseService.getCourseById(requestDTO.getCourseId());
         TermResponseDTO term = termService.getTermById(requestDTO.getTermId());
 
+        // Check if a course offering already exists for the same course and term
+        Optional<CourseOffering> existingOffering = courseOfferingRepository.findByCourse_CourseIDAndTerm_TermID(
+                requestDTO.getCourseId(),
+                requestDTO.getTermId()
+        );
+
+        if (existingOffering.isPresent()) {
+            throw new DuplicateResourceException("A course offering for this course already exists in the specified term.");
+        }
+
+        // Create and save the new course offering
         CourseOffering courseOffering = CourseOffering.builder()
                 .course(Course.builder()
                         .courseID(course.getCourseId())
@@ -61,6 +71,19 @@ public class CourseOfferingService {
         courseOfferingRepository.save(courseOffering);
         return mapToCourseOfferingResponseDTO(courseOffering);
     }
+
+    public void decrementAvailableSeats(Long offeringId) {
+        CourseOffering courseOffering = courseOfferingRepository.findById(offeringId)
+                .orElseThrow(() -> new ResourceNotFoundException("Course Offering not found with ID: " + offeringId));
+
+        if (courseOffering.getAvailableSeats() > 0) {
+            courseOffering.setAvailableSeats(courseOffering.getAvailableSeats() - 1);
+            courseOfferingRepository.save(courseOffering);
+        } else {
+            throw new IllegalStateException("No available seats to decrement for course offering with ID: " + offeringId);
+        }
+    }
+
 
     public CourseOfferingResponseDTO updateCourseOffering(Long offeringId, CourseOfferingRequestDTO requestDTO) {
         CourseOffering existingOffering = courseOfferingRepository.findById(offeringId)
@@ -110,6 +133,19 @@ public class CourseOfferingService {
 
     public List<CourseOfferingResponseDTO> getCourseOfferingsForStudent(Long studentID) {
         String currentTermCode = termService.getCurrentTermCode();
+
+        // Check if the student has any enrollments in the current term
+        List<EnrollmentResponseDTO> currentTermEnrollments = enrollmentServiceClient.getEnrollmentsByStudent(studentID, Arrays.asList("ENROLLED"))
+                .getBody()
+                .stream()
+                .filter(enrollment -> enrollment.getCourseOffering().getTerm().getCode().equals(currentTermCode))
+                .collect(Collectors.toList());
+
+        // If the student has any enrollments in the current term, return an empty list
+        if (!currentTermEnrollments.isEmpty()) {
+            return Collections.emptyList();
+        }
+
         StudentResponseDTO studentResponseDTO = studentServiceClient.getStudentById(studentID).getBody();
 
         // Fetch all course offerings for the student's department, program, and current term

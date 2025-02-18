@@ -22,12 +22,12 @@ public class StudentService {
     private final BatchService batchService;
     private final Random random = new Random();
 
-    public Student registerStudent(Student student, Long batchId) {
+    public Student registerStudent(Student student) {
         if (studentRepository.findByEmail(student.getEmail()).isPresent()) {
             throw new DuplicateResourceException("Student with this email already exists");
         }
 
-        Batch batch = batchService.getBatchById(batchId);
+        Batch batch = student.getBatch();
         student.setBatch(batch);
         student.setCardId(generateCardId());
         return studentRepository.save(student);
@@ -61,6 +61,7 @@ public class StudentService {
         student.setCardId(studentDetails.getCardId());
         student.setEmail(studentDetails.getEmail());
         student.setPhone(studentDetails.getPhone());
+        student.setEmergencyContact(studentDetails.getEmergencyContact());
         student.setAddress(studentDetails.getAddress());
         student.setEnrollmentStatus(studentDetails.getEnrollmentStatus());
         student.setBatch(studentDetails.getBatch());

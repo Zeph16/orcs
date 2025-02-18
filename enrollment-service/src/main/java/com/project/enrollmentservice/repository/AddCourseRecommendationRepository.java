@@ -12,5 +12,7 @@ public interface AddCourseRecommendationRepository extends JpaRepository<AddCour
     List<AddCourseRecommendation> findByTermID(Long termId);
     List<AddCourseRecommendation> findByCourseID(Long courseId);
     List<AddCourseRecommendation> findByStudentIDAndTermID(Long studentId, Long termId);
+
+    List<AddCourseRecommendation> findByCourseIDAndTermID(Long courseId, Long currentTermId);
 }
 

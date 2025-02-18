@@ -17,8 +17,6 @@ import java.util.List;
 public class CourseOfferingController {
     private final CourseOfferingService courseOfferingService;
 
-    // TODO: Add decrement capacity method for each enrollment on a given offering
-
     @PostMapping
     public ResponseEntity<CourseOfferingResponseDTO> createCourseOffering(
             @RequestBody CourseOfferingRequestDTO requestDTO) {
@@ -26,6 +24,12 @@ public class CourseOfferingController {
                 courseOfferingService.createCourseOffering(requestDTO),
                 HttpStatus.CREATED
         );
+    }
+
+    @PutMapping("/{offeringId}/decrement-seats")
+    public ResponseEntity<Void> decrementAvailableSeats(@PathVariable Long offeringId) {
+        courseOfferingService.decrementAvailableSeats(offeringId);
+        return ResponseEntity.ok().build();
     }
 
     @PutMapping("/{offeringId}")

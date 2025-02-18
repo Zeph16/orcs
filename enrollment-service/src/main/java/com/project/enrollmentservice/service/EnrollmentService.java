@@ -33,6 +33,7 @@ public class EnrollmentService {
         }
         Enrollment enrollment = mapToEnrollmentEntity(enrollmentDTO);
         enrollment = enrollmentRepository.save(enrollment);
+        curriculumServiceClient.decrementAvailableSeats(enrollment.getOfferingID());
         return mapToEnrollmentResponseDTO(enrollment);
     }
 

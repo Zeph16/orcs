@@ -1,4 +1,5 @@
 package com.project.paymentservice.controller;
+import com.project.paymentservice.dto.PaymentReceiptDTO;
 import com.project.paymentservice.dto.PaymentRequestDTO;
 import com.project.paymentservice.dto.PaymentPartialResponseDTO;
 import com.project.paymentservice.dto.RollbackRequestDTO;
@@ -28,9 +29,9 @@ public class PaymentController {
         return ResponseEntity.ok(responseDTOs);
     }
 
-    @GetMapping("/verify/{id}")
-    public ResponseEntity<Payment> verifyPayment(@PathVariable Long id) {
-        Payment payment = paymentService.verifyPayment(id);
+    @GetMapping("/verify/{txRef}")
+    public ResponseEntity<PaymentReceiptDTO> verifyPayment(@PathVariable String txRef) {
+        PaymentReceiptDTO payment = paymentService.verifyPayment(txRef);
         return ResponseEntity.ok(payment);
     }
 
@@ -51,5 +52,4 @@ public class PaymentController {
         List<Payment> payments = paymentService.getPaymentByStudentId(id);
         return ResponseEntity.ok(payments);
     }
-
 }

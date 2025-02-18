@@ -28,6 +28,11 @@ public class CurriculumServiceFallback implements CurriculumServiceClient {
     }
 
     @Override
+    public ResponseEntity<Void> decrementAvailableSeats(Long offeringId) {
+        return null;
+    }
+
+    @Override
     public ResponseEntity<CourseResponseDTO> getCourseById(Long courseId) {
         return null;
     }

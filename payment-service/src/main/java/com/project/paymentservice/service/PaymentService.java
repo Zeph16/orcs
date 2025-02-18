@@ -1,7 +1,8 @@
 package com.project.paymentservice.service;
 
 import com.project.paymentservice.chapa.*;
-        import com.project.paymentservice.dto.PaymentRequestDTO;
+import com.project.paymentservice.dto.PaymentReceiptDTO;
+import com.project.paymentservice.dto.PaymentRequestDTO;
 import com.project.paymentservice.feignclient.client.StudentServiceClient;
 import com.project.paymentservice.feignclient.dto.StudentResponseDTO;
 import com.project.paymentservice.model.*;
@@ -32,10 +33,15 @@ public class PaymentService {
         BigDecimal totalRequiredAmount = BigDecimal.ZERO;
         String txRef = generateTxRef();
 
+        // Assuming the amounts and offeringIDs lists are of the same size
+        List<BigDecimal> amounts = paymentRequestDTO.getAmounts();
+        List<Long> offeringIDs = paymentRequestDTO.getOfferingIDs();
+
         // Payments need to be saved first to get the payment id for possible credit transactions
-        for (BigDecimal amount : paymentRequestDTO.getAmounts()) {
+        for (int i = 0; i < amounts.size(); i++) {
             Payment p = new Payment();
-            p.setAmount(amount);
+            p.setAmount(amounts.get(i));
+            p.setOfferingID(offeringIDs.get(i)); // Set the offering ID
             p.setStudentId(paymentRequestDTO.getStudentId());
             p.setDescription(paymentRequestDTO.getDescription());
             p.setStatus(PaymentStatus.PENDING);
@@ -43,11 +49,10 @@ public class PaymentService {
             p.setType(PaymentType.DIRECT);
 
             paymentProtos.add(p);
-            totalRequiredAmount = totalRequiredAmount.add(amount);
+            totalRequiredAmount = totalRequiredAmount.add(amounts.get(i));
         }
 
         List<Payment> payments = paymentRepository.saveAll(paymentProtos);
-
 
         Credit credit = creditService.getOrCreateCredit(paymentRequestDTO.getStudentId());
         BigDecimal creditBalance = credit.getBalance();
@@ -83,7 +88,6 @@ public class PaymentService {
 
         if (chapaResponse == null || chapaResponse.getData() == null) {
             payments.stream().filter(p -> p.getType() != PaymentType.CREDIT_ONLY).forEach(p -> p.setStatus(PaymentStatus.FAILED));
-
         } else {
             payments.stream().filter(p -> p.getType() != PaymentType.CREDIT_ONLY).forEach(p -> p.setCheckoutUrl(chapaResponse.getData().getCheckout_url()));
         }
@@ -114,6 +118,50 @@ public class PaymentService {
     }
 
     @Transactional
+    public PaymentReceiptDTO verifyPayment(String txRef) {
+        List<Payment> payments = paymentRepository.findByTxRef(txRef);
+        if (payments.isEmpty()) {
+            throw new RuntimeException("Payment not found with txRef: " + txRef);
+        }
+
+        Payment first_payment = payments.get(0);
+//        if (first_payment.getType().equals(PaymentType.CREDIT_ONLY)) {
+//            return first_payment;
+//        }
+        BigDecimal totalAmount = BigDecimal.ZERO;
+        ChapaVerificationResponse verificationResponse = chapaClient.verifyPayment(txRef);
+        for (Payment payment : payments) {
+
+            if (verificationResponse == null || verificationResponse.getData() == null) {
+                throw new RuntimeException("Failed to verify payment with Chapa.");
+            }
+
+            if (verificationResponse.getStatus().equals("success")) {
+                payment.setStatus(verificationResponse.getData().getStatus().equalsIgnoreCase("success") ? PaymentStatus.SUCCESS : PaymentStatus.PENDING);
+            } else {
+                payment.setStatus(PaymentStatus.FAILED);
+                throw new RuntimeException("Transaction not found with Chapa, payment marked as Failed.");
+            }
+
+            paymentRepository.save(payment);
+            totalAmount = totalAmount.add(payment.getAmount());
+        }
+
+        StudentResponseDTO student = studentServiceClient.getStudentById(first_payment.getStudentId()).getBody();
+        return PaymentReceiptDTO.builder()
+                .studentName(student.getName())
+                .cardId(student.getCardId())
+                .email(student.getEmail())
+                .phone(student.getPhone())
+                .description(first_payment.getDescription())
+                .paymentDate(first_payment.getCreatedAt())
+                .type(first_payment.getType())
+                .totalFee(totalAmount)
+                .status(first_payment.getStatus())
+                .build();
+    }
+
+    @Transactional
     public Payment rollbackPayment(Long id, String reason) {
         Payment payment = paymentRepository.findById(id).orElseThrow(() -> new RuntimeException("Payment not found."));
         if (payment.getStatus() != PaymentStatus.SUCCESS) {
@@ -132,8 +180,6 @@ public class PaymentService {
     }
 
     private ChapaPaymentRequest createChapaRequest(PaymentRequestDTO dto, BigDecimal amount, String txRef) {
-        // StudentResponseDTO studentResponseDTO = studentServiceClient.getStudentById(dto.getStudentId()).getBody();
-
         StudentResponseDTO studentResponseDTO = StudentResponseDTO.builder()
                 .id(dto.getStudentId())
                 .email("teststudent@email.com")
@@ -150,7 +196,8 @@ public class PaymentService {
                 .phone_number(studentResponseDTO.getPhone())
                 .tx_ref(txRef)
                 .customization(new Customization("HiLCoE", dto.getDescription()))
-                .return_url("https://www.google.com")
+                .return_url("http://localhost:5173/payment/transition/" + txRef) // Use txRef in the return URL
+                //.return_url("") // Use txRef in the return URL
                 .build();
     }
 
@@ -181,6 +228,6 @@ public class PaymentService {
             throw new IllegalArgumentException("Payment not found with txRef:" + txRef);
         }
 
-        payments.forEach(p -> verifyPayment(p.getId()));
+        payments.forEach(p -> verifyPayment(p.getTxRef()));
     }
 }
