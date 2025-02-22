@@ -12,7 +12,7 @@ import java.time.LocalDate;
 
 @Entity
 @Table(name = "batches", uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"creationDate", "section"})
+        @UniqueConstraint(columnNames = {"creationDate"})
 })
 @Data
 @AllArgsConstructor
@@ -20,7 +20,7 @@ import java.time.LocalDate;
 @Builder
 public class Batch {
     @Id
-    @GeneratedValue(strategy= GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @Column(nullable = false)
     private Long departmentId;
