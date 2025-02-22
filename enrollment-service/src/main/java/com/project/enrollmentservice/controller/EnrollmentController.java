@@ -50,6 +50,11 @@ public class EnrollmentController {
         return ResponseEntity.noContent().build();
     }
 
+    @PatchMapping("/{enrollmentId}")
+    public ResponseEntity<EnrollmentResponseDTO> dropEnrollment(@PathVariable Long enrollmentId) {
+        return ResponseEntity.ok(enrollmentService.dropEnrollment(enrollmentId));
+    }
+
     @GetMapping("/students/{studentId}")
     public ResponseEntity<List<EnrollmentResponseDTO>> getEnrollmentsByStudent(
             @PathVariable Long studentId,

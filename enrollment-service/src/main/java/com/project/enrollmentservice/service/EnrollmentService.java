@@ -62,6 +62,15 @@ public class EnrollmentService {
         return mapToEnrollmentResponseDTO(updatedEnrollment);
     }
 
+    @Transactional
+    public EnrollmentResponseDTO dropEnrollment(Long enrollmentId) {
+        Enrollment enrollment = enrollmentRepository.findById(enrollmentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Enrollment not found with ID: " + enrollmentId));
+        enrollment.setStatus(Enrollment.EnrollmentStatus.NOT_COMPLETED);
+        Enrollment updatedEnrollment = enrollmentRepository.save(enrollment);
+        return mapToEnrollmentResponseDTO(updatedEnrollment);
+    }
+
     public void deleteEnrollment(Long enrollmentId) {
         Enrollment enrollment = enrollmentRepository.findById(enrollmentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Enrollment not found with ID: " + enrollmentId));
@@ -101,7 +110,6 @@ public class EnrollmentService {
                 .map(this::mapToEnrollmentResponseDTO)
                 .collect(Collectors.toList());
     }
-
 
     private Enrollment mapToEnrollmentEntity(EnrollmentRequestDTO enrollmentDTO) {
         return Enrollment.builder()

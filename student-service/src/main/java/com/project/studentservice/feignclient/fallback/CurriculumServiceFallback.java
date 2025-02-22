@@ -51,4 +51,9 @@ public class CurriculumServiceFallback implements CurriculumServiceClient {
                 .build();
         return ResponseEntity.ok(departmentResponseDTO);
     }
+
+    @Override
+    public ResponseEntity<Integer> getTotalRequiredCreditHrs(Long departmentId, Long programId) {
+        return null;
+    }
 }

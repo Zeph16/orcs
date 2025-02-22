@@ -8,10 +8,11 @@ values
 INSERT INTO departments (name, code, head) VALUES ('Computer Science', 'CS', 'Bob');
 INSERT INTO departments (name, code, head) VALUES ('Software Engineering', 'SE', 'Alice');
 
-INSERT INTO department_program (department_id, program_id) VALUES (1, 1); -- Computer Science with BSc
-INSERT INTO department_program (department_id, program_id) VALUES (1, 2); -- Computer Science with MSc
-INSERT INTO department_program (department_id, program_id) VALUES (2, 1); -- Software Engineering with BSc
-INSERT INTO department_program (department_id, program_id) VALUES (2, 2); -- Software Engineering with MSc
+-- Now include the total_required_credit_hrs
+INSERT INTO department_program (department_id, program_id, total_required_credit_hrs) VALUES (1, 1, 120); -- CS with BSc - Example: 120 credit hours
+INSERT INTO department_program (department_id, program_id, total_required_credit_hrs) VALUES (1, 2, 60);  -- CS with MSc - Example: 60 credit hours
+INSERT INTO department_program (department_id, program_id, total_required_credit_hrs) VALUES (2, 1, 130); -- SE with BSc - Example: 130 credit hours
+INSERT INTO department_program (department_id, program_id, total_required_credit_hrs) VALUES (2, 2, 70);  -- SE with MSc - Example: 70 credit hours
 
 -- Insert the courses (updated to include description, course_objectives, and course_content)
 INSERT INTO courses (credit_hrs, code, status, title, type, description)

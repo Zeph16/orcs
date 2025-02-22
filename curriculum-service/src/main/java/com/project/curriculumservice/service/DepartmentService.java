@@ -3,6 +3,7 @@ package com.project.curriculumservice.service;
 import com.project.curriculumservice.dto.DepartmentRequestDTO;
 import com.project.curriculumservice.dto.DepartmentResponseDTO;
 import com.project.curriculumservice.dto.ProgramResponseDTO;
+import com.project.curriculumservice.dto.ProgramWithCreditsDTO;
 import com.project.curriculumservice.exception.ResourceNotFoundException;
 import com.project.curriculumservice.model.Department;
 import com.project.curriculumservice.model.DepartmentProgram;
@@ -29,51 +30,42 @@ public class DepartmentService {
     private final DepartmentProgramService departmentProgramService;
 
     public DepartmentResponseDTO createDepartment(DepartmentRequestDTO departmentDTO) {
-        if (departmentDTO.getProgramIds() == null || departmentDTO.getProgramIds().isEmpty()) {
+        if (departmentDTO.getProgramCredits() == null || departmentDTO.getProgramCredits().isEmpty()) {
             throw new IllegalArgumentException("At least one program must be associated with the department");
         }
 
-        // First, create the department
-        Department department = mapToDepartmentEntity(departmentDTO);
+        // Create and save the department
+        Department newDepartment = mapToDepartmentEntity(departmentDTO);
+        final Department savedDepartment = departmentRepository.save(newDepartment); // Final variable
 
-        // Save the department first
-        department = departmentRepository.save(department);
+        // Create department-program relationships with credit hours
+        departmentDTO.getProgramCredits().forEach((programId, creditHrs) ->
+                departmentProgramService.createDepartmentProgram(savedDepartment, programId, creditHrs)
+        );
 
-        // Then create the department-program relationships
-        for (Long programId : departmentDTO.getProgramIds()) {
-            departmentProgramService.createDepartmentProgram(department, programId);
-        }
-
-        return mapToDepartmentResponseDTO(department, departmentProgramService.getPrograms(department.getDepartmentID()));
+        return getDepartmentById(savedDepartment.getDepartmentID());
     }
 
-    // Get a department by ID and return as DepartmentResponseDTO
+
     public DepartmentResponseDTO getDepartmentById(Long departmentId) {
-        // Fetch the department entity
         Department department = departmentRepository.findById(departmentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Department not found with ID: " + departmentId));
 
-        // Fetch associated programs using departmentProgramRepository
-        List<Program> programs = departmentProgramService.getPrograms(departmentId);
+        List<DepartmentProgram> departmentPrograms = departmentProgramService.getDepartmentPrograms(departmentId);
 
-        // Map the department and its programs to DepartmentResponseDTO
-        return mapToDepartmentResponseDTO(department, programs);
+        return mapToDepartmentResponseDTO(department, departmentPrograms);
     }
 
-    // Get all departments and return as a list of DepartmentResponseDTO
     public List<DepartmentResponseDTO> getAllDepartments() {
         return departmentRepository.findAll().stream()
                 .map(department -> {
-                    // Fetch associated programs using departmentProgramRepository
-                    List<Program> programs = departmentProgramService.getPrograms(department.getDepartmentID());
-
-                    // Map the department and its programs to DepartmentResponseDTO
-                    return mapToDepartmentResponseDTO(department, programs);
+                    List<DepartmentProgram> departmentPrograms =
+                            departmentProgramService.getDepartmentPrograms(department.getDepartmentID());
+                    return mapToDepartmentResponseDTO(department, departmentPrograms);
                 })
                 .collect(Collectors.toList());
     }
 
-    // Update an existing department
     public DepartmentResponseDTO updateDepartment(Long departmentId, DepartmentRequestDTO departmentDTO) {
         Department existingDepartment = departmentRepository.findById(departmentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Department not found with ID: " + departmentId));
@@ -83,13 +75,13 @@ public class DepartmentService {
         existingDepartment.setCode(departmentDTO.getCode());
         existingDepartment.setHead(departmentDTO.getHead());
 
-        // Handle program associations
-        if (departmentDTO.getProgramIds() != null) {
-            departmentProgramService.updateDepartmentPrograms(existingDepartment, departmentDTO.getProgramIds());
+        // Handle program associations with credit hours
+        if (departmentDTO.getProgramCredits() != null) {
+            departmentProgramService.updateDepartmentPrograms(existingDepartment, departmentDTO.getProgramCredits());
         }
 
         Department department = departmentRepository.save(existingDepartment);
-        return mapToDepartmentResponseDTO(department, departmentProgramService.getPrograms(departmentId));
+        return getDepartmentById(department.getDepartmentID());
     }
 
     // Delete a department
@@ -98,18 +90,17 @@ public class DepartmentService {
                 .orElseThrow(() -> new ResourceNotFoundException("Department not found with ID: " + departmentId));
         departmentRepository.delete(department);
     }
-    private DepartmentResponseDTO mapToDepartmentResponseDTO(Department department, List<Program> programs) {
-        // Map programs to the required DTO format
-        List<ProgramResponseDTO> programDTOs = programs.stream()
-                .map(program -> ProgramResponseDTO.builder()
-                        .programId(program.getProgramID())
-                        .name(program.getName())
-                        .code(program.getCode())
-                        .departments(new ArrayList<>())
+
+    private DepartmentResponseDTO mapToDepartmentResponseDTO(Department department, List<DepartmentProgram> departmentPrograms) {
+        List<ProgramWithCreditsDTO> programDTOs = departmentPrograms.stream()
+                .map(dp -> ProgramWithCreditsDTO.builder()
+                        .programId(dp.getProgram().getProgramID())
+                        .name(dp.getProgram().getName())
+                        .code(dp.getProgram().getCode())
+                        .totalRequiredCreditHrs(dp.getTotalRequiredCreditHrs())
                         .build())
                 .toList();
 
-        // Map department to the response DTO
         return DepartmentResponseDTO.builder()
                 .departmentId(department.getDepartmentID())
                 .name(department.getName())
@@ -118,6 +109,7 @@ public class DepartmentService {
                 .programs(programDTOs)
                 .build();
     }
+
     private Department mapToDepartmentEntity(DepartmentRequestDTO departmentDTO) {
         return Department.builder()
                 .name(departmentDTO.getName())
@@ -125,5 +117,9 @@ public class DepartmentService {
                 .head(departmentDTO.getHead())
                 .departmentPrograms(new HashSet<>())
                 .build();
+    }
+
+    public int getTotalRequiredCreditHrs(Long departmentId, Long programId) {
+        return departmentProgramService.getTotalRequiredCreditHrs(departmentId, programId);
     }
 }

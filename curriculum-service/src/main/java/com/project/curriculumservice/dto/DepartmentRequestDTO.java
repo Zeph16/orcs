@@ -3,6 +3,7 @@ package com.project.curriculumservice.dto;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.*;
 
+import java.util.Map;
 import java.util.Set;
 
 @Data
@@ -21,8 +22,8 @@ public class DepartmentRequestDTO {
 
     private String head;
 
-    @NotEmpty(message = "At least one program is required")
-    private Set<Long> programIds; // List of Program IDs to associate
+    @NotEmpty(message = "Total required credit hours is required")
+    private Map<Long, Integer> programCredits; // Map of programId to required credit hours
 }
 
 

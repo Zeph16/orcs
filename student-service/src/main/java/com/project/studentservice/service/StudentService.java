@@ -1,10 +1,14 @@
 package com.project.studentservice.service;
 
 
+import com.project.studentservice.dto.CreditHoursResponseDTO;
 import com.project.studentservice.dto.StudentRequestDTO;
 import com.project.studentservice.dto.StudentResponseDTO;
 import com.project.studentservice.exception.DuplicateResourceException;
 import com.project.studentservice.exception.ResourceNotFoundException;
+import com.project.studentservice.feignclient.client.CurriculumServiceClient;
+import com.project.studentservice.feignclient.client.EnrollmentServiceClient;
+import com.project.studentservice.feignclient.dto.EnrollmentResponseDTO;
 import com.project.studentservice.model.Batch;
 import com.project.studentservice.model.Student;
 import com.project.studentservice.repository.StudentRepository;
@@ -12,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 
 
@@ -20,6 +25,8 @@ import java.util.Random;
 public class StudentService {
     private final StudentRepository studentRepository;
     private final BatchService batchService;
+    private final EnrollmentServiceClient enrollmentServiceClient;
+    private final CurriculumServiceClient curriculumServiceClient;
     private final Random random = new Random();
 
     public Student registerStudent(Student student) {
@@ -66,6 +73,32 @@ public class StudentService {
         student.setEnrollmentStatus(studentDetails.getEnrollmentStatus());
         student.setBatch(studentDetails.getBatch());
         return studentRepository.save(student);
+    }
+
+    public CreditHoursResponseDTO getCreditHours(Long id) {
+        List<EnrollmentResponseDTO> enrollmentsResponseDTO = enrollmentServiceClient.getEnrollmentsByStudent(id, List.of("COMPLETED")).getBody();
+
+        if (enrollmentsResponseDTO == null) {
+            return CreditHoursResponseDTO.builder().totalCreditHours(0).remainingCreditHours(0).build();
+        }
+
+        int totalFinishedCreditHours = enrollmentsResponseDTO.stream()
+                .map(EnrollmentResponseDTO::getCourseOffering)
+                .filter(courseOffering -> courseOffering != null && courseOffering.getCourse() != null)
+                .mapToInt(courseOffering -> courseOffering.getCourse().getCreditHrs())
+                .sum();
+
+        Student student = getStudentById(id);
+        int totalRequiredCreditHours = curriculumServiceClient.getTotalRequiredCreditHrs(student.getBatch().getDepartmentId(), student.getBatch().getProgramId()).getBody();
+        int remainingCreditHours = totalRequiredCreditHours - totalFinishedCreditHours;
+        if (remainingCreditHours < 0) {
+            remainingCreditHours = 0;
+        }
+
+        return CreditHoursResponseDTO.builder()
+                .totalCreditHours(totalRequiredCreditHours)
+                .remainingCreditHours(remainingCreditHours)
+                .build();
     }
 
     public void deleteStudent(Long id) {

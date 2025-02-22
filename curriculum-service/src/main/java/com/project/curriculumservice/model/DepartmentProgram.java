@@ -31,4 +31,5 @@ public class DepartmentProgram {
     @ManyToMany(mappedBy = "departmentPrograms")
     private Set<Course> courses = new HashSet<>();
 
+    private int totalRequiredCreditHrs;
 }

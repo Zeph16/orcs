@@ -16,5 +16,5 @@ public class DepartmentResponseDTO {
     private String name;
     private String code;
     private String head;
-    private List<ProgramResponseDTO> programs;
+    private List<ProgramWithCreditsDTO> programs;
 }

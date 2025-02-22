@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -51,7 +52,7 @@ public class DepartmentProgramService {
                 .program(program)
                 .build());
     }
-    public DepartmentProgram createDepartmentProgram(Department department, Long programId) {
+    public DepartmentProgram createDepartmentProgram(Department department, Long programId, int totalRequiredCreditHrs) {
         Program program = programRepository.findById(programId)
                 .orElseThrow(() -> new ResourceNotFoundException("Program not found with ID: " + programId));
 
@@ -60,6 +61,7 @@ public class DepartmentProgramService {
                 .id(id)
                 .department(department)
                 .program(program)
+                .totalRequiredCreditHrs(totalRequiredCreditHrs)
                 .build());
     }
 
@@ -79,26 +81,37 @@ public class DepartmentProgramService {
     }
 
     @Transactional
-    public void updateDepartmentPrograms(Department department, Set<Long> newProgramIds) {
+    public void updateDepartmentPrograms(Department department, Map<Long, Integer> programCredits) {
         // Get existing associations
-        List<DepartmentProgram> existingAssociations = departmentProgramRepository
-                .findByDepartment_DepartmentID(department.getDepartmentID());
-
-        // Get existing program IDs
+        List<DepartmentProgram> existingAssociations = getDepartmentPrograms(department.getDepartmentID());
         Set<Long> existingProgramIds = existingAssociations.stream()
                 .map(dp -> dp.getProgram().getProgramID())
                 .collect(Collectors.toSet());
+        Set<Long> newProgramIds = programCredits.keySet();
 
-        // Find programs to remove (in existing but not in new)
+        // Remove associations that are no longer needed
         existingAssociations.stream()
                 .filter(dp -> !newProgramIds.contains(dp.getProgram().getProgramID()))
-                .forEach(dp -> departmentProgramRepository.delete(dp));
+                .forEach(departmentProgramRepository::delete);
 
-        // Add new associations (in new but not in existing)
-        newProgramIds.stream()
-                .filter(programId -> !existingProgramIds.contains(programId))
-                .forEach(programId -> createDepartmentProgram(department, programId));
+        // Update existing or create new associations
+        programCredits.forEach((programId, creditHrs) -> {
+            if (existingProgramIds.contains(programId)) {
+                // Update existing association
+                DepartmentProgram dp = getDepartmentProgramById(department.getDepartmentID(), programId);
+                dp.setTotalRequiredCreditHrs(creditHrs);
+                departmentProgramRepository.save(dp);
+            } else {
+                // Create new association
+                createDepartmentProgram(department, programId, creditHrs);
+            }
+        });
     }
+
+    public List<DepartmentProgram> getDepartmentPrograms(Long departmentId) {
+        return departmentProgramRepository.findByDepartment_DepartmentID(departmentId);
+    }
+
     @Transactional
     public void updateDepartmentPrograms(Program program, Set<Long> newDepartmentIds) {
         // Get existing associations
@@ -119,5 +132,12 @@ public class DepartmentProgramService {
         newDepartmentIds.stream()
                 .filter(departmentId -> !existingProgramIds.contains(departmentId))
                 .forEach(departmentId -> createDepartmentProgram(program, departmentId));
+    }
+
+    public int getTotalRequiredCreditHrs(Long departmentId, Long programId) {
+        return departmentProgramRepository
+                .findByDepartment_DepartmentIDAndProgram_ProgramID(departmentId, programId)
+                .map(DepartmentProgram::getTotalRequiredCreditHrs)
+                .orElseThrow(() -> new ResourceNotFoundException("No department-program mapping found"));
     }
 }

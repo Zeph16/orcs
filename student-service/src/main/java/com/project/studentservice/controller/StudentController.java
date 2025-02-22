@@ -1,5 +1,6 @@
 package com.project.studentservice.controller;
 
+import com.project.studentservice.dto.CreditHoursResponseDTO;
 import com.project.studentservice.dto.GPAResponseDTO;
 import com.project.studentservice.dto.StudentRequestDTO;
 import com.project.studentservice.dto.StudentResponseDTO;
@@ -30,6 +31,12 @@ public class StudentController {
     public ResponseEntity<StudentResponseDTO> getStudentById(@PathVariable Long id) {
         Student student = studentService.getStudentById(id);
         return ResponseEntity.ok(studentService.toDTO(student));
+    }
+
+    @GetMapping("/{id}/credits")
+    public ResponseEntity<CreditHoursResponseDTO> getCreditHours(@PathVariable Long id) {
+        CreditHoursResponseDTO creditHours = studentService.getCreditHours(id);
+        return ResponseEntity.ok(creditHours);
     }
 
     @GetMapping("/card/{cardId}")

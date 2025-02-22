@@ -39,6 +39,12 @@ public class DepartmentController {
         return ResponseEntity.ok(departments);
     }
 
+    @GetMapping("/{departmentId}/{programId}")
+    public ResponseEntity<Integer> getTotalRequiredCreditHrs(@PathVariable Long departmentId, @PathVariable Long programId) {
+        int totalCreditHrs = departmentService.getTotalRequiredCreditHrs(departmentId, programId);
+        return ResponseEntity.ok(totalCreditHrs);
+    }
+
     // Update an existing department
     @PutMapping("/{id}")
     public ResponseEntity<DepartmentResponseDTO> updateDepartment(@PathVariable Long id, @Valid @RequestBody DepartmentRequestDTO departmentDTO) {

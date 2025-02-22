@@ -23,4 +23,7 @@ public interface CurriculumServiceClient {
 
     @GetMapping("/api/departments/{id}")
     ResponseEntity<DepartmentResponseDTO> getDepartmentById(@PathVariable Long id);
+
+    @GetMapping("/api/departments/{departmentId}/{programId}")
+    ResponseEntity<Integer> getTotalRequiredCreditHrs(@PathVariable Long departmentId, @PathVariable Long programId);
 }
