@@ -8,9 +8,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 @RestController
-@RequestMapping("/notifications")
+@RequestMapping("/api/notifications")
 @RequiredArgsConstructor
 public class NotificationController {
 
@@ -22,8 +23,20 @@ public class NotificationController {
         return ResponseEntity.ok(notificationService.mapToDTO(notification));
     }
 
-    @GetMapping("/unread/{userId}")
-    public ResponseEntity<List<NotificationResponseDTO>> getUnreadNotifications(@PathVariable Long userId) {
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<NotificationResponseDTO>> getNotificationsByUser(@PathVariable String userId) {
+        List<Notification> unreadNotifications = notificationService.getNotificationsByUser(userId, List.of(Notification.Target.ALL, Notification.Target.STUDENT), Notification.Status.UNREAD);
+        List<Notification> readNotifications = notificationService.getNotificationsByUser(userId, List.of(Notification.Target.ALL, Notification.Target.STUDENT), Notification.Status.READ);
+        List<Notification> allNotifications = Stream.concat(
+                unreadNotifications.stream(),
+                readNotifications.stream()
+        ).toList();
+        return ResponseEntity.ok(allNotifications.stream().map(notificationService::mapToDTO).toList());
+    }
+
+
+    @GetMapping("/user/{userId}/unread")
+    public ResponseEntity<List<NotificationResponseDTO>> getUnreadNotifications(@PathVariable String userId) {
         List<Notification> unreadNotifications = notificationService.getNotificationsByUser(userId, List.of(Notification.Target.ALL, Notification.Target.STUDENT), Notification.Status.UNREAD);
         return ResponseEntity.ok(unreadNotifications.stream().map(notificationService::mapToDTO).toList());
     }

@@ -22,8 +22,27 @@ public class NotificationListener {
         String userId = (String) eventData.get("userId");
 
         switch (eventType) {
+            case "student.created":
+                eventHandler.handleStudentCreated(eventType, eventData);
+                break;
+
+            case "record.created":
+                eventHandler.handleRecordCreated(eventType, eventData);
+
             case "term.created":
                 eventHandler.handleTermCreated(eventType, eventData);
+                break;
+
+            case "add_recommendation.created":
+                eventHandler.handleAddRecommendationCreated(eventType, eventData);
+                break;
+
+            case "enrollment_request.approved":
+                eventHandler.handleEnrollmentRequestApproved(eventType, eventData);
+                break;
+
+            case "enrollment_request.denied":
+                eventHandler.handleEnrollmentRequestDenied(eventType, eventData);
                 break;
 
             default:

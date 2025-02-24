@@ -12,7 +12,7 @@ public class NotificationService {
 
     private final NotificationRepository notificationRepository;
 
-    public Notification createNotification(String type, String data, String message, Long userId, Notification.Target target) {
+    public Notification createNotification(String type, String data, String message, String userId, Notification.Target target) {
         Notification notification = Notification.builder()
                 .type(type)
                 .data(data)
@@ -24,7 +24,7 @@ public class NotificationService {
         return notificationRepository.save(notification);
     }
 
-    public List<Notification> getNotificationsByUser(Long userId, List<Notification.Target> targets, Notification.Status status) {
+    public List<Notification> getNotificationsByUser(String userId, List<Notification.Target> targets, Notification.Status status) {
         return Stream.concat(
                 notificationRepository.findByTargetInAndStatus(targets, status).stream(),
                 notificationRepository.findByUserIdAndStatus(userId, status).stream()

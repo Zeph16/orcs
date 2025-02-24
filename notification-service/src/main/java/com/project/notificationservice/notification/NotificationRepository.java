@@ -8,5 +8,5 @@ import java.util.List;
 @Repository
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
     List<Notification> findByTargetInAndStatus(List<Notification.Target> targets, Notification.Status status);
-    List<Notification> findByUserIdAndStatus(Long userId, Notification.Status status);
+    List<Notification> findByUserIdAndStatus(String userId, Notification.Status status);
 }

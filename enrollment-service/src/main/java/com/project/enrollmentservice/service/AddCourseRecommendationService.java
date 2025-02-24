@@ -15,6 +15,7 @@ import com.project.enrollmentservice.model.AddCourseRecommendation;
 import com.project.enrollmentservice.model.Enrollment;
 import com.project.enrollmentservice.repository.AddCourseRecommendationRepository;
 import com.project.enrollmentservice.service.AddCourseRecommendationService;
+import com.project.enrollmentservice.util.EventPublisher;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -35,6 +36,7 @@ public class AddCourseRecommendationService {
     private final StudentServiceClient studentClient;
     private final CurriculumServiceClient curriculumClient;
     private final EnrollmentService enrollmentService;
+    private final EventPublisher eventPublisher;
 
     public AddCourseRecommendationResponse createRecommendation(AddCourseRecommendationRequest request) {
         // Verify that the referenced entities exist via FeignClients
@@ -50,7 +52,12 @@ public class AddCourseRecommendationService {
 
         AddCourseRecommendation savedRecommendation = recommendationRepository.save(recommendation);
 
-        return buildResponse(savedRecommendation, student, term, course);
+        AddCourseRecommendationResponse res = buildResponse(savedRecommendation, student, term, course);
+
+        eventPublisher.publishAddRecommendationCreated(res);
+
+        return res;
+
     }
 
     public List<EligibleStudentsDTO> getEligibleStudentsForCourse(Long courseId) {

@@ -12,6 +12,7 @@ import com.project.studentservice.feignclient.dto.EnrollmentResponseDTO;
 import com.project.studentservice.model.Batch;
 import com.project.studentservice.model.Student;
 import com.project.studentservice.repository.StudentRepository;
+import com.project.studentservice.util.EventPublisher;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -27,6 +28,8 @@ public class StudentService {
     private final BatchService batchService;
     private final EnrollmentServiceClient enrollmentServiceClient;
     private final CurriculumServiceClient curriculumServiceClient;
+    private final EventPublisher eventPublisher;
+    private final KeycloakUserService keycloakUserService;
     private final Random random = new Random();
 
     public Student registerStudent(Student student) {
@@ -34,10 +37,15 @@ public class StudentService {
             throw new DuplicateResourceException("Student with this email already exists");
         }
 
-        Batch batch = student.getBatch();
-        student.setBatch(batch);
         student.setCardId(generateCardId());
-        return studentRepository.save(student);
+
+        Student savedStudent = studentRepository.save(student);
+        String id = keycloakUserService.createUser(student.getCardId(), student.getEmail(), student.getName().split(" ")[0], student.getName().split(" ")[1]);
+        keycloakUserService.sendPasswordResetEmail(id);
+
+        eventPublisher.publishStudentCreated(toDTO(savedStudent));
+
+        return savedStudent;
     }
 
     public Student getStudentById(Long id) {

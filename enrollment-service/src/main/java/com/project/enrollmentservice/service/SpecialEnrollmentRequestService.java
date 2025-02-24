@@ -1,5 +1,6 @@
 package com.project.enrollmentservice.service;
 
+import com.project.enrollmentservice.dto.AddCourseRecommendationResponse;
 import com.project.enrollmentservice.dto.CreateEnrollmentRequestDTO;
 import com.project.enrollmentservice.dto.EnrollmentRequestResponseDTO;
 import com.project.enrollmentservice.dto.UpdateEnrollmentRequestDTO;
@@ -10,6 +11,7 @@ import com.project.enrollmentservice.feignclient.dto.CourseOfferingResponseDTO;
 import com.project.enrollmentservice.feignclient.dto.StudentResponseDTO;
 import com.project.enrollmentservice.model.SpecialEnrollmentRequest;
 import com.project.enrollmentservice.repository.SpecialEnrollmentRequestRepository;
+import com.project.enrollmentservice.util.EventPublisher;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +25,7 @@ public class SpecialEnrollmentRequestService {
     private final SpecialEnrollmentRequestRepository repository;
     private final StudentServiceClient studentServiceClient;
     private final CurriculumServiceClient curriculumServiceClient;
+    private final EventPublisher eventPublisher;
 
     @Transactional
     public EnrollmentRequestResponseDTO createRequest(CreateEnrollmentRequestDTO requestDTO) {
@@ -107,7 +110,15 @@ public class SpecialEnrollmentRequestService {
         var courseOfferingResponse = curriculumServiceClient.getCourseOfferingById(request.getOfferingID())
                 .getBody();
 
-        return buildResponseDTO(updatedRequest, studentResponse, courseOfferingResponse);
+        EnrollmentRequestResponseDTO res = buildResponseDTO(updatedRequest, studentResponse, courseOfferingResponse);
+
+        if (updateDTO.getApprovalStatus().equals(SpecialEnrollmentRequest.ApprovalStatus.APPROVED)) {
+            eventPublisher.publishEnrollmentRequestApproved(res);
+        } else {
+            eventPublisher.publishEnrollmentRequestDenied(res);
+        }
+
+        return res;
     }
 
     private EnrollmentRequestResponseDTO buildResponseDTO(

@@ -2,6 +2,10 @@ spring:
   application:
     name: student-service
 
+  sql:
+    init:
+      mode: always
+
   config:
     import: optional:configserver:http://localhost:8888
 

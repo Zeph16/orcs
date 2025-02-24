@@ -13,6 +13,7 @@ import com.project.studentservice.model.AcademicRecord;
 import com.project.studentservice.model.Grade;
 import com.project.studentservice.model.Student;
 import com.project.studentservice.repository.AcademicRecordRepository;
+import com.project.studentservice.util.EventPublisher;
 import com.project.studentservice.util.GradeConfiguration;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -31,6 +32,7 @@ public class AcademicRecordService {
     private final CurriculumServiceClient curriculumServiceClient;
     private final EnrollmentServiceClient enrollmentServiceClient;
     private final GradeConfiguration gradeConfiguration;
+    private final EventPublisher eventPublisher;
 
     public AcademicRecord createAcademicRecord(AcademicRecord academicRecord) {
         // Check if an academic record already exists for the same student, course, and term
@@ -86,7 +88,10 @@ public class AcademicRecordService {
         }
 
         // Save the new academic record
-        return academicRecordRepository.save(academicRecord);
+        AcademicRecord savedRecord = academicRecordRepository.save(academicRecord);
+        eventPublisher.publishRecordCreated(toDTO(savedRecord));
+
+        return savedRecord;
     }
 
     public AcademicRecord getAcademicRecordById(Long id) {
