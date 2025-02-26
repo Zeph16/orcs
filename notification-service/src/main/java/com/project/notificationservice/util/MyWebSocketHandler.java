@@ -25,8 +25,16 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
         Map<String, String> queryParams = getQueryParams(session.getUri());
 
         String userId = queryParams.get("id");
+        if (userId == null) {
+            return;
+        }
         System.out.println("Connected id: " + userId);
-        webSocketService.addSession(userId, session);
+
+        if (queryParams.containsKey("admin")) {
+            webSocketService.addAdminSession(userId, session);
+        } else {
+            webSocketService.addStudentSession(userId, session);
+        }
         super.afterConnectionEstablished(session);
     }
 
@@ -39,7 +47,14 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
         Map<String, String> queryParams = getQueryParams(session.getUri());
         String userId = queryParams.get("id");
-        webSocketService.removeSession(userId);
+        if (userId == null) {
+            return;
+        }
+        if (queryParams.containsKey("admin")) {
+            webSocketService.removeAdminSession(userId);
+        } else {
+            webSocketService.removeStudentSession(userId);
+        }
         super.afterConnectionClosed(session, status);
     }
 

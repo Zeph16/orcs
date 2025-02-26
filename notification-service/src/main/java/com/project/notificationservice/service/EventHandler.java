@@ -30,16 +30,16 @@ public class EventHandler {
         Notification notification = notificationService.createNotification(eventType, eventData.toString(), message, null, STUDENT);
         String jsonNotif = objectMapper.writeValueAsString(notificationService.mapToDTO(notification));
 
-        webSocketService.sendNotificationToAll(jsonNotif);
+        webSocketService.sendNotificationToAll(STUDENT, jsonNotif);
     }
 
     public void handleStudentCreated(String eventType, Map<String, Object> eventData) throws JsonProcessingException {
         System.out.println("Processing student creation: " + eventData);
-        String message = "Welcome to the HiLCoE online portal! You'll get the latest updates related to your education at HiLCoE on this page. Feel free to look around and familiarize yourself with the rest of the platform.";
+        String message = "Welcome " + eventData.get("name") + "to the HiLCoE online portal! You'll get the latest updates related to your education at HiLCoE on this page. Feel free to look around and familiarize yourself with the rest of the platform.";
         Notification notification = notificationService.createNotification(eventType, eventData.toString(), message, (String) eventData.get("studentCardId"), USER);
         String jsonNotif = objectMapper.writeValueAsString(notificationService.mapToDTO(notification));
 
-        webSocketService.sendNotificationToUser((String) eventData.get("studentCardId"), jsonNotif);
+        webSocketService.sendNotificationToUser(STUDENT, (String) eventData.get("studentCardId"), jsonNotif);
     }
 
     public void handleAddRecommendationCreated(String eventType, Map<String, Object> eventData) throws JsonProcessingException {
@@ -48,7 +48,7 @@ public class EventHandler {
         Notification notification = notificationService.createNotification(eventType, eventData.toString(), message, (String) eventData.get("studentCardId"), USER);
         String jsonNotif = objectMapper.writeValueAsString(notificationService.mapToDTO(notification));
 
-        webSocketService.sendNotificationToUser((String) eventData.get("studentCardId"), jsonNotif);
+        webSocketService.sendNotificationToUser(STUDENT, (String) eventData.get("studentCardId"), jsonNotif);
     }
 
     public void handleEnrollmentRequestApproved(String eventType, Map<String, Object> eventData) throws JsonProcessingException {
@@ -57,7 +57,7 @@ public class EventHandler {
         Notification notification = notificationService.createNotification(eventType, eventData.toString(), message, (String) eventData.get("studentCardId"), USER);
         String jsonNotif = objectMapper.writeValueAsString(notificationService.mapToDTO(notification));
 
-        webSocketService.sendNotificationToUser((String) eventData.get("studentCardId"), jsonNotif);
+        webSocketService.sendNotificationToUser(STUDENT, (String) eventData.get("studentCardId"), jsonNotif);
     }
 
     public void handleEnrollmentRequestDenied(String eventType, Map<String, Object> eventData) throws JsonProcessingException {
@@ -66,7 +66,7 @@ public class EventHandler {
         Notification notification = notificationService.createNotification(eventType, eventData.toString(), message, (String) eventData.get("studentCardId"), USER);
         String jsonNotif = objectMapper.writeValueAsString(notificationService.mapToDTO(notification));
 
-        webSocketService.sendNotificationToUser((String) eventData.get("studentCardId"), jsonNotif);
+        webSocketService.sendNotificationToUser(STUDENT, (String) eventData.get("studentCardId"), jsonNotif);
     }
 
     public void handleRecordCreated(String eventType, Map<String, Object> eventData) throws JsonProcessingException {
@@ -75,6 +75,6 @@ public class EventHandler {
         Notification notification = notificationService.createNotification(eventType, eventData.toString(), message, (String) eventData.get("studentCardId"), USER);
         String jsonNotif = objectMapper.writeValueAsString(notificationService.mapToDTO(notification));
 
-        webSocketService.sendNotificationToUser((String) eventData.get("studentCardId"), jsonNotif);
+        webSocketService.sendNotificationToUser(STUDENT, (String) eventData.get("studentCardId"), jsonNotif);
     }
 }
